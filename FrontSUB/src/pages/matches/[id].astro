@@ -1,0 +1,184 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getMatchById } from "../../services/matches";
+
+const { id } = Astro.params;
+
+const match = await getMatchById(Number(id));
+
+if (!match) {
+    throw new Error(`No se encontró el partido con ID: ${id}`);
+}
+
+---
+<Layout title={`Detalles del Partido: ${match.homeTeam} vs ${match.awayTeam}`}>
+    <section class="match-details">
+        <div class="team">
+            <img src={match.homeImg} alt={`${match.homeTeam} logo`} class="team-logo">
+            <h2>{match.homeTeam}</h2>
+        </div>
+        <div class="vs">vs</div>
+        <div class="team">
+            <img src={match.awayImg} alt={`${match.awayTeam} logo`} class="team-logo">
+            <h2>{match.awayTeam}</h2>
+        </div>
+        <div class="match-info">
+            <p>Fecha: {match.date}</p>
+            <p>Hora: {match.time}</p>
+        </div>
+    </section>
+
+    <section class="event-subscription">
+        <h2>Selecciona los eventos que deseas seguir</h2>
+        <form id="subscription-form">
+            <label>
+                <input type="checkbox" name="events" value="goals"> Goles
+            </label>
+            <label>
+                <input type="checkbox" name="events" value="cards"> Tarjetas
+            </label>
+            <label>
+                <input type="checkbox" name="events" value="substitutions"> Cambios
+            </label>
+            <button type="submit">Suscribirse</button>
+        </form>
+    </section>
+
+    <section class="event-list">
+        <h2>Eventos Recientes</h2>
+        <ul>
+            <!-- Aquí irán los eventos recientes -->
+        </ul>
+    </section>
+</Layout>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    .match-details, .event-subscription, .event-list {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .match-details {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        font-size: 1.2rem;
+        padding: 2rem;
+        flex-wrap: wrap;
+        position: relative; /* Añadido */
+    }
+
+    .match-details .team {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .match-details .team-logo {
+        width: 150px; /* Aumentado a 150px */
+        height: 150px; /* Aumentado a 150px */
+        margin-bottom: 1rem;
+    }
+
+    .match-details .vs {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745; /* Verde */
+        position: absolute; /* Añadido */
+        left: 50%; /* Añadido */
+        transform: translateX(-50%); /* Añadido */
+    }
+
+    .match-details h2 {
+        margin: 0;
+        color: #28a745; /* Verde */
+    }
+
+    .match-details .match-info {
+        width: 100%;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .match-details .match-info p {
+        margin: 0.5rem 0;
+    }
+
+    .event-subscription h2, .event-list h2 {
+        margin-top: 0;
+        color: #28a745; /* Verde */
+    }
+
+    .event-subscription form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .event-subscription label {
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .event-subscription input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+
+    .event-subscription button {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #28a745; /* Verde */
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .event-subscription button:hover {
+        background-color: #218838; /* Verde oscuro */
+    }
+
+    .event-list ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .event-list li {
+        padding: 0.5rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .match-details .team-logo {
+        width: 200px; /* Aumentado a 150px */
+        height: 200px; /* Aumentado a 150px */
+        margin-bottom: 1rem;
+        object-fit: contain; /* Mantener proporción */
+    }
+
+    .match-details .team {
+        display: flex;
+        justify-content: center; /* Centrar horizontalmente */
+        align-items: center; /* Centrar verticalmente */
+        flex-direction: column; /* Alinear elementos en columna */
+    }
+
+    .match-details .team h2 {
+        font-size: 2em; /* Tamaño de letra más grande */
+        color: black; /* Letra en negro */
+    }
+
+    .match-info p {
+        color: darkgray; /* Letra gris oscuro */
+        font-weight: bold; /* Letra en negrita */
+        margin: 0; /* Eliminar separación entre líneas */
+    }
+</style>
