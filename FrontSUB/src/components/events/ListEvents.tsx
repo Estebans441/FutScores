@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getEvents, simularEventos } from "../../services/eventsService";
+import { fetchEvents } from "../../services/eventsService";
 import { type Match, type Event } from "../../types/match";
 import './ListEvents.css';
 
@@ -41,13 +41,9 @@ const ListEvents: React.FC<Props> = ({ match }) => {
   };
 
   useEffect(() => {
-    const fetchAndSimulateEvents = async () => {
-      const eventos = await getEvents();
-      simularEventos(eventos, (evento) => {
+    fetchEvents((evento) => {
         setEvents((prevEvents) => [...prevEvents, evento]);
-      });
-    };
-    fetchAndSimulateEvents();
+    });
   }, []);
 
   return (
