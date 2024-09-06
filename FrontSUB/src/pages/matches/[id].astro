@@ -1,5 +1,5 @@
 ---
-import ListEvents from "../../components/events/ListEvents.astro";
+import ListEvents from "../../components/events/ListEvents.tsx";
 import Checkbox from "../../components/utils/Checkbox.astro";
 import Layout from "../../layouts/Layout.astro";
 import { getMatchById } from "../../services/matchesService";
@@ -60,7 +60,7 @@ if (!match) {
     </section >
     <section class="event-subscription max-w-5xl mx-auto text-center">
         <h2> Eventos  </h2>
-        <ListEvents match={match}/>
+        <ListEvents client:visible match={match}/>
     </section>
 </Layout>
 

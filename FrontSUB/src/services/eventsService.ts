@@ -20,3 +20,11 @@ export const getEvents = async () => {
     eventos.sort((a, b) => a.minute - b.minute);
     return eventos;
 };
+
+export const simularEventos = (eventos: Event[], callback: (evento: Event) => void) => {
+    eventos.forEach((evento, index) => {
+        setTimeout(() => {
+            callback(evento);
+        }, index * 1000);
+    });
+};
