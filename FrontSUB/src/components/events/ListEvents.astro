@@ -39,66 +39,99 @@ const eventDescriptions: { [key: string]: string } = {
 ---
 
 <div class="timeline">
-    {events.map((event) => (
-        <div class={`event ${event.team === localTeamId ? 'left' : 'right'}`}>
-            {event.team === localTeamId && <span class="description">{eventDescriptions[event.type]} {event.player}</span>}
-            <span class="minute">{event.minute}'</span>
-            <img src={eventIcons[event.type]} alt={event.type} class="icon" />
-            {event.team !== localTeamId && <span class="description">{eventDescriptions[event.type]} {event.player}</span>}
+  {events.map((event) => (
+    <div class={`event ${event.team === localTeamId ? 'left' : 'right'}`}>
+      {event.team === localTeamId && (
+        <div class="event-content">
+          <span class="description">{eventDescriptions[event.type]} {event.player}</span>
+          <img src={eventIcons[event.type]} alt={event.type} class="icon" />
         </div>
-    ))}
+      )}
+      <span class="minute">{event.minute}'</span>
+      {event.team !== localTeamId && (
+        <div class="event-content">
+          <img src={eventIcons[event.type]} alt={event.type} class="icon" />
+          <span class="description">{eventDescriptions[event.type]} {event.player}</span>
+        </div>
+      )}
+    </div>
+  ))}
 </div>
 
 <style>
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      width: 100%;
-    }
-    .event {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 600px;
-      margin: 5px 0;
-      position: relative;
-    }
-    .event.left {
-      justify-content: flex-start;
-    }
-    .event.right {
-      justify-content: flex-end;
-    }
-    .minute {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff;
-      padding: 2px 5px;
-      border-radius: 3px;
-      border: 1px solid #ccc;
-      margin: 0;
-      font-weight: bold;
-      width: 40px; /* Asegura que todos los minutos tengan el mismo tamaño */
-      text-align: center;
-    }
-    .icon {
-      width: 20px;
-      height: 20px;
-      margin: 0 8px;
-      display: inline-block;
-      vertical-align: middle; /* Asegura que los iconos estén alineados con el texto */
-    }
-    .description {
-      display: inline-block;
-      max-width: 150px;
-      text-align: center;
-      vertical-align: middle;
-    }
-    .event span, .event img {
-      margin: 0 4px;
-    }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    background-color: #ffffff; /* Fondo claro */
+    padding: 20px;
+  }
+
+  .event {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .event.left {
+    justify-content: flex-start;
+  }
+
+  .event.right {
+    justify-content: flex-end;
+  }
+
+  .minute {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4CAF50; /* Fondo verde */
+    color: #ffffff; /* Texto blanco */
+    padding: 10px;
+    border-radius: 50%;
+    border: 2px solid #4CAF50; /* Borde verde */
+    font-weight: bold;
+    width: 40px;
+    height: 40px; /* Alto igual al ancho para un círculo perfecto */
+    text-align: center;
+    line-height: 20px; /* Alineación vertical del texto */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .event-content {
+    display: flex;
+    align-items: center;
+    background: #f0f5f0; /* Fondo blanco para el contenido */
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #4CAF50; /* Borde verde */
+    margin: 0 10px;
+  }
+
+  .description {
+    font-size: 14px;
+    margin-right: 8px;
+    color: #333; /* Texto oscuro */
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+
+  .event.left .event-content {
+    justify-content: flex-end;
+  }
+
+  .event.right .event-content {
+    justify-content: flex-start;
+  }
 </style>
