@@ -1,6 +1,8 @@
 ---
+import ListEvents from "../../components/events/ListEvents.astro";
+import Checkbox from "../../components/utils/Checkbox.astro";
 import Layout from "../../layouts/Layout.astro";
-import { getMatchById } from "../../services/matches";
+import { getMatchById } from "../../services/matchesService";
 
 const { id } = Astro.params;
 
@@ -12,14 +14,14 @@ if (!match) {
 
 ---
 <Layout title={`Detalles del Partido: ${match.homeTeam} vs ${match.awayTeam}`}>
-    <section class="match-details">
+    <section class="match-details text-center">
         <div class="team">
-            <img src={match.homeImg} alt={`${match.homeTeam} logo`} class="team-logo">
+            <img src={match.homeImg} alt={`${match.homeTeam} logo`} class="team-logo mx-auto">
             <h2>{match.homeTeam}</h2>
         </div>
         <div class="vs">vs</div>
         <div class="team">
-            <img src={match.awayImg} alt={`${match.awayTeam} logo`} class="team-logo">
+            <img src={match.awayImg} alt={`${match.awayTeam} logo`} class="team-logo mx-auto">
             <h2>{match.awayTeam}</h2>
         </div>
         <div class="match-info">
@@ -28,29 +30,40 @@ if (!match) {
         </div>
     </section>
 
-    <section class="event-subscription">
+    <section class="event-subscription max-w-5xl mx-auto text-center">
         <h2>Selecciona los eventos que deseas seguir</h2>
-        <form id="subscription-form">
-            <label>
-                <input type="checkbox" name="events" value="goals"> Goles
-            </label>
-            <label>
-                <input type="checkbox" name="events" value="cards"> Tarjetas
-            </label>
-            <label>
-                <input type="checkbox" name="events" value="substitutions"> Cambios
-            </label>
-            <button type="submit">Suscribirse</button>
-        </form>
-    </section>
-
-    <section class="event-list">
-        <h2>Eventos Recientes</h2>
-        <ul>
-            <!-- Aquí irán los eventos recientes -->
-        </ul>
+        <div class="grid sm:grid-cols-3 lg:grid-cols-3 gap-4">
+            <div class="bg-green-500 bg-opacity-5 p-2 rounded-lg">
+                <h3 class="font-bold">Estado del partido</h3>
+                <Checkbox checked={false} id="inicio"> Inicio del Partido </Checkbox>
+                <Checkbox checked={false} id="medio"> Medio Tiempo </Checkbox>
+                <Checkbox checked={false} id="fin"> Fin del Partido </Checkbox>
+            </div>
+            <div class="bg-green-500 bg-opacity-5 p-2 rounded-lg">
+                <h3 class="font-bold">Detalle del partido</h3>
+                <Checkbox checked={false} id="goles"> Goles </Checkbox>
+                <Checkbox checked={false} id="penales"> Penales </Checkbox>
+                <Checkbox checked={false} id="rojas"> Tarjetas Rojas </Checkbox>
+                <Checkbox checked={false} id="amarillas"> Tarjetas Amarillas </Checkbox>
+            </div>
+            <div class="bg-green-500 bg-opacity-5 p-2 rounded-lg">
+                <h3 class="font-bold">Otros</h3>
+                <Checkbox checked={false} id="cambios"> Cambios </Checkbox>
+                <Checkbox checked={false} id="fueras"> Fueras de Juego </Checkbox>
+                <Checkbox checked={false} id="esquinas"> Tiros de Esquina </Checkbox>
+                <Checkbox checked={false} id="libres"> Tiros Libres </Checkbox>
+            </div>
+        </div>
+        <div class="flex justify-end mt-4">
+            <button type="submit" class="btn-primary">Suscribirse</button>
+        </div>
+    </section >
+    <section class="event-subscription max-w-5xl mx-auto text-center">
+        <h2> Eventos  </h2>
+        <ListEvents match={match}/>
     </section>
 </Layout>
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -91,7 +104,6 @@ if (!match) {
     }
 
     .match-details .vs {
-        font-size: 2rem;
         font-weight: bold;
         color: #28a745; /* Verde */
         position: absolute; /* Añadido */

@@ -1,14 +1,4 @@
-interface Match {
-    id: number;
-    homeTeam: string;
-    homeAbbr: string;
-    homeImg: string;
-    awayTeam: string;
-    awayAbbr: string;
-    awayImg: string;
-    date: string;
-    time: string;
-}
+import { type Match } from "../types/match.ts";
 
 export const getMatches = async () => {
     const matches: Match[] = [

@@ -1,0 +1,104 @@
+---
+import { getEvents } from "../../services/eventsService";
+import { type Match } from "../../types/match";
+
+interface Props { match : Match;}
+
+const { match } = Astro.props;
+
+const events = await getEvents();
+const { homeTeam: localTeamId } = match;
+
+const eventIcons: { [key: string]: string } = {
+  "goal": '/event_icons/gol.png',
+  "penalty": '/event_icons/penal.png',
+  "red card": '/event_icons/roja.png',
+  "yellow card": '/event_icons/amarilla.png',
+  "substitution": '/event_icons/cambio.png',
+  "offside": '/event_icons/fuera.png',
+  "corner kick": '/event_icons/esquina.png',
+  "free kick": '/event_icons/libre.png',
+  "start": '/event_icons/tiempo.png',
+  "half-time": '/event_icons/tiempo.png',
+  "end": '/event_icons/tiempo.png'
+};
+
+const eventDescriptions: { [key: string]: string } = {
+  "goal": 'Gol de',
+  "penalty": 'Penalti de',
+  "red card": 'Tarjeta roja para',
+  "yellow card": 'Tarjeta amarilla para',
+  "substitution": 'Cambio de',
+  "offside": 'Fuera de juego de',
+  "corner kick": 'Tiro de esquina de',
+  "free kick": 'Tiro libre de',
+  "start": 'Inicio del tiempo',
+  "half-time": 'Medio tiempo',
+  "end": 'Fin del tiempo'
+};
+---
+
+<div class="timeline">
+    {events.map((event) => (
+        <div class={`event ${event.team === localTeamId ? 'left' : 'right'}`}>
+            {event.team === localTeamId && <span class="description">{eventDescriptions[event.type]} {event.player}</span>}
+            <span class="minute">{event.minute}'</span>
+            <img src={eventIcons[event.type]} alt={event.type} class="icon" />
+            {event.team !== localTeamId && <span class="description">{eventDescriptions[event.type]} {event.player}</span>}
+        </div>
+    ))}
+</div>
+
+<style>
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      width: 100%;
+    }
+    .event {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 600px;
+      margin: 5px 0;
+      position: relative;
+    }
+    .event.left {
+      justify-content: flex-start;
+    }
+    .event.right {
+      justify-content: flex-end;
+    }
+    .minute {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      margin: 0;
+      font-weight: bold;
+      width: 40px; /* Asegura que todos los minutos tengan el mismo tamaño */
+      text-align: center;
+    }
+    .icon {
+      width: 20px;
+      height: 20px;
+      margin: 0 8px;
+      display: inline-block;
+      vertical-align: middle; /* Asegura que los iconos estén alineados con el texto */
+    }
+    .description {
+      display: inline-block;
+      max-width: 150px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .event span, .event img {
+      margin: 0 4px;
+    }
+</style>

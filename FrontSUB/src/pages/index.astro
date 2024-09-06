@@ -1,10 +1,6 @@
 ---
+import Matches from '../components/matches/ListMatches.astro';
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
-import { getMatches } from '../services/matches';
-
-// Datos de ejemplo para los partidos
-const matches = await getMatches();
 ---
 
 <Layout title="FutScores">
@@ -14,37 +10,20 @@ const matches = await getMatches();
             <p>
                 Una vez selecciones un partido, tendrás la opción de suscribirte a eventos específicos de ese partido, como goles, tarjetas, cambios y más. Para ello:
             </p>
-            <ul>
-                <li>Selecciona el partido de tu interés de la lista de abajo.</li>
-                <li>Al hacer clic en un partido, serás redirigido a la página de detalles del partido, donde podrás ver una lista de eventos que puedes seguir.</li>
-                <li>Marca los eventos que te gustaría recibir en tiempo real.</li>
-                <li>El sistema se encargará de suscribirte a esos eventos específicos utilizando una conexión en tiempo real con nuestros servidores.</li>
-                <li>Recibirás notificaciones automáticas en cuanto ocurran estos eventos.</li>
+            <ul class="list-disc pl-5">
+                <li class="list-item mb-2">Selecciona el partido de tu interés de la lista de abajo.</li>
+                <li class="list-item mb-2">Al hacer clic en un partido, serás redirigido a la página de detalles del partido, donde podrás ver una lista de eventos que puedes seguir.</li>
+                <li class="list-item mb-2">Marca los eventos que te gustaría recibir en tiempo real.</li>
+                <li class="list-item mb-2">El sistema se encargará de suscribirte a esos eventos específicos utilizando una conexión en tiempo real con nuestros servidores.</li>
+                <li class="list-item mb-2">Recibirás notificaciones automáticas en cuanto ocurran estos eventos.</li>
             </ul>
             <p>
                 Esta interacción está gestionada por nuestra tecnología de <strong>RabbitMQ</strong> y conexiones <strong>WebSocket</strong>, que garantizan que las actualizaciones te lleguen en tiempo real sin necesidad de que refresques la página.
             </p>
         </section>
 
-        <section class="matches-section">
-            <h2>Partidos Disponibles</h2>
-            <ul role="list" class="link-card-grid">
-				{matches.map(match => (
-					<Card 
-						key={match.id}
-						id={match.id}
-						homeTeam={match.homeTeam} 
-						homeAbbr={match.homeAbbr}
-						homeImg={match.homeImg}
-						awayTeam={match.awayTeam} 
-						awayAbbr={match.awayAbbr}
-						awayImg={match.awayImg}
-						date={match.date} 
-						time={match.time} 
-					/>
-				))}
-			</ul>
-        </section>
+        <Matches />
+        
     </main>
 </Layout>
 
@@ -58,15 +37,6 @@ const matches = await getMatches();
         font-size: 20px;
         line-height: 1.6;
     }
-    .astro-a {
-        position: absolute;
-        top: -32px;
-        left: 50%;
-        transform: translatex(-50%);
-        width: 220px;
-        height: auto;
-        z-index: -1;
-    }
     .instructions {
         margin-bottom: 2rem;
         border: 1px solid rgba(0,0,0,0.1);
@@ -77,32 +47,5 @@ const matches = await getMatches();
 
     .instructions strong {
         color: green;
-    }
-
-    /* Cambiar el estilo de la lista de grid a lista normal */
-    ul {
-        list-style-type: disc; /* Cambiar el estilo de la lista a una lista con viñetas */
-        padding-left: 20px; /* Añadir espacio a la izquierda para las viñetas */
-    }
-
-    ul li {
-        display: list-item; /* Asegurarse de que los elementos de la lista se muestren como elementos de lista */
-        margin-bottom: 10px; /* Añadir espacio entre los elementos de la lista */
-    }
-
-	section h2 {
-		color: green;
-		text-align: center;
-		font-size: 2rem;
-		margin-bottom: 1rem;
-		font-weight: 600;
-	}
-
-	    .text-gradient {
-        background-image: linear-gradient(to right, rgb(30, 116, 30) 0%, rgb(241, 245, 3) 50%, rgb(241, 245, 3) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-size: 400%;
-        background-position: 0%;
     }
 </style>

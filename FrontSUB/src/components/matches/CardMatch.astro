@@ -1,18 +1,13 @@
 ---
+import { type Match } from '../../types/match.ts';
+
 interface Props {
   key: number;
-  id: number;
-  homeTeam: string;
-  homeAbbr: string;
-  homeImg: string;
-  awayTeam: string;
-  awayAbbr: string;
-  awayImg: string;
-  date: string;
-  time: string;
+  match : Match;
 }
 
-const { id, homeTeam, homeAbbr, homeImg, awayTeam, awayAbbr, awayImg, date, time } = Astro.props;
+const { match } = Astro.props;
+const { id, homeTeam, homeAbbr, homeImg, awayTeam, awayAbbr, awayImg, date, time } = match;
 ---
 <li class="link-card">
   <a href={`/matches/${id}`}>
