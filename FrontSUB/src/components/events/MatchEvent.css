@@ -1,13 +1,3 @@
-.timeline {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    background-color: #ffffff; /* Fondo claro */
-    padding: 20px;
-  }
-
   .event {
     display: flex;
     align-items: center;
