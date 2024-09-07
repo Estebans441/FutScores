@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchEvents } from "../../services/eventsService";
+import { fetchEvents } from "../../backend/eventsService";
 import { type Match, type Event } from "../../types/match";
 import './ListEvents.css';
 
@@ -42,6 +42,7 @@ const ListEvents: React.FC<Props> = ({ match }) => {
 
   useEffect(() => {
     fetchEvents((evento) => {
+        console.log(evento);
         setEvents((prevEvents) => [...prevEvents, evento]);
     });
   }, []);

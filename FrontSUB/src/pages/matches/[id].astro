@@ -2,7 +2,7 @@
 import ListEvents from "../../components/events/ListEvents.tsx";
 import Checkbox from "../../components/utils/Checkbox.astro";
 import Layout from "../../layouts/Layout.astro";
-import { getMatchById } from "../../services/matchesService";
+import { getMatchById } from "../../backend/matchesService.ts";
 
 const { id } = Astro.params;
 
