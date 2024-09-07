@@ -36,7 +36,7 @@ func createEvent(c *gin.Context) {
 		return
 	}
 	evento.ID = len(eventos) + 1
-	defer publishEvent(evento)
+	publishEvent(evento)
 	eventos = append(eventos, evento)
 	c.JSON(http.StatusCreated, evento)
 }
