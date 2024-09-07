@@ -38,7 +38,7 @@ But this has to be implemented with Websockets, not with RabbitMQ.
 ---
 
 export const fetchEvents = async (callback: (evento: Event) => void) => {
-    const rmqInstance = new RabbitMQClient("myExchange", "myBindKey", "myQueue");
+    const rmqInstance = new RabbitMQClient(["match.1.#"]);
     await rmqInstance.initialize();
     await rmqInstance.subscribe((message: string) => {
         const evento: Event = JSON.parse(message);
