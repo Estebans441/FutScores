@@ -1,5 +1,5 @@
 import { type Event } from "../types/match";
-import RabbitMQClient from "./rabbitmq";
+// import RabbitMQClient from "./rabbitmq";
 
 let eventos : Event[] = [
     { id: 1, matchId: 1, team: "FC Barcelona", player: "Gavi", type: "goal", minute: 15 },
@@ -16,7 +16,7 @@ let eventos : Event[] = [
     { id: 12, matchId: 1, team: "Real Madrid", player: "Courtois", type: "half-time", minute: 45 },
     { id: 13, matchId: 1, team: "Real Madrid", player: "Modric", type: "end", minute: 90 }
 ];
-/*
+
 export const fetchEvents= async (callback: (evento: Event) => void) => {
     eventos.sort((a, b) => a.minute - b.minute);
     eventos.forEach((evento, index) => {
@@ -25,8 +25,8 @@ export const fetchEvents= async (callback: (evento: Event) => void) => {
         }, index * 2000);
     });
 };
-*/
 
+/*
 export const fetchEvents = async (callback: (evento: Event) => void) => {
     const rmqInstance = new RabbitMQClient(["match.1.#"]);
     await rmqInstance.initialize();
@@ -35,3 +35,4 @@ export const fetchEvents = async (callback: (evento: Event) => void) => {
         callback(evento);
     });
 };
+*/

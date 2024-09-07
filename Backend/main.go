@@ -41,6 +41,10 @@ func createEvent(c *gin.Context) {
 	c.JSON(http.StatusCreated, evento)
 }
 
+func getMatches(c *gin.Context) {
+	c.JSON(http.StatusOK, matches)
+}
+
 func intializeRouter() {
 	// Create a new router
 	router := gin.Default()
@@ -48,6 +52,8 @@ func intializeRouter() {
 	// Define the routes
 	router.GET("/events", publishAllEvents)
 	router.POST("/events", createEvent)
+
+	router.GET("/matches", getMatches)
 
 	// Run the server
 	router.Run("localhost:8080")
@@ -125,12 +131,33 @@ type Event struct {
 	Minute  int    `json:"minute"`
 }
 
+type Match struct {
+	ID           int    `json:"id"`
+	HomeTeam     string `json:"homeTeam"`
+	HomeTeamAbbr string `json:"homeTeamAbbr"`
+	HomeImg      string `json:"homeImg"`
+	AwayTeam     string `json:"awayTeam"`
+	AwayTeamAbbr string `json:"awayTeamAbbr"`
+	AwayImg      string `json:"awayImg"`
+	Date         string `json:"date"`
+	Time         string `json:"time"`
+}
+
 type RabbitMQ struct {
 	conn   *amqp.Connection
 	ch     *amqp.Channel
 	ctx    context.Context
 	cancel context.CancelFunc
 	err    error
+}
+
+var matches = []Match{
+    {ID: 1, HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
+    {ID: 2, HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
+    {ID: 3, HomeTeam: "Valencia CF", HomeTeamAbbr: "VAL", HomeImg: "/team_logos/Valencia CF.png", AwayTeam: "Villarreal CF", AwayTeamAbbr: "VIL", AwayImg: "/team_logos/Villarreal CF.png", Date: "2023-10-03", Time: "22:00"},
+    {ID: 4, HomeTeam: "Real Sociedad", HomeTeamAbbr: "RSO", HomeImg: "/team_logos/Real Sociedad.png", AwayTeam: "Athletic Bilbao", AwayTeamAbbr: "ATH", AwayImg: "/team_logos/Athletic Bilbao.png", Date: "2023-10-04", Time: "18:00"},
+    {ID: 5, HomeTeam: "Real Betis Balompié", HomeTeamAbbr: "BET", HomeImg: "/team_logos/Real Betis Balompié.png", AwayTeam: "Deportivo Alavés", AwayTeamAbbr: "ALA", AwayImg: "/team_logos/Deportivo Alavés.png", Date: "2023-10-05", Time: "20:00"},
+    {ID: 6, HomeTeam: "Celta de Vigo", HomeTeamAbbr: "CEL", HomeImg: "/team_logos/Celta de Vigo.png", AwayTeam: "RCD Espanyol Barcelona", AwayTeamAbbr: "ESP", AwayImg: "/team_logos/RCD Espanyol Barcelona.png", Date: "2023-10-06", Time: "22:00"},
 }
 
 var eventos = []Event{}
