@@ -1,7 +1,7 @@
 # build output
-dist/
+*/dist/
 # generated types
-.astro/
+*/.astro/
 
 # dependencies
 */node_modules/
@@ -14,11 +14,12 @@ dist/
 
 
 # environment variables
-.env
-.env.production
+*/.env
+*/.env.production
 
 # macOS-specific files
-.DS_Store
+*/.DS_Store
 
 # jetbrains setting folder
-.idea/
+*/.idea/
+*/.vscode/
