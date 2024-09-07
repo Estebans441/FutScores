@@ -8,10 +8,6 @@ interface Props {
 }
 
 const ListEvents: React.FC<Props> = ({ match }) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const localTeamId = match.homeTeam;
-
-
   const eventIcons: { [key: string]: string } = {
     "goal": '/event_icons/gol.png',
     "penalty": '/event_icons/penal.png',
@@ -39,6 +35,9 @@ const ListEvents: React.FC<Props> = ({ match }) => {
     "half-time": 'Medio tiempo',
     "end": 'Fin del tiempo'
   };
+
+  const [events, setEvents] = useState<Event[]>([]);
+  const localTeamId = match.homeTeam;
 
   useEffect(() => {
     fetchEvents((evento) => {
