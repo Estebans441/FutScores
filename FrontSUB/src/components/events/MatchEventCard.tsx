@@ -21,39 +21,54 @@ const eventIcons: { [key: string]: string } = {
 };
 
 const eventDescriptions: { [key: string]: string } = {
-  "goal": 'Gol de',
-  "penalty": 'Penalti de',
-  "red card": 'Tarjeta roja para',
-  "yellow card": 'Tarjeta amarilla para',
-  "substitution": 'Cambio de',
-  "offside": 'Fuera de juego de',
-  "corner kick": 'Tiro de esquina de',
-  "free kick": 'Tiro libre de',
+  "goal": 'Gol',
+  "penalty": 'Penalti',
+  "red card": 'Tarjeta roja',
+  "yellow card": 'Tarjeta amarilla',
+  "substitution": 'Cambio',
+  "offside": 'Fuera de juego',
+  "corner kick": 'Tiro de esquina',
+  "free kick": 'Tiro libre',
   "start": 'Inicio del tiempo',
   "half-time": 'Medio tiempo',
   "end": 'Fin del tiempo'
 };
 
 const MatchEventCard: React.FC<Props> = ({ event, localTeamId }) => {
+  const isLocalTeam = event.team === localTeamId;
+
   return (
-    <div className={`event ${event.team === localTeamId ? 'left' : 'right'}`}>
-      <span className="minute">{event.minute}'</span>
+    <div className="event-row">
+      {/* Div para el equipo local */}
+      <div className={`event-content local-team ${isLocalTeam ? 'active' : ''}`}>
+      {isLocalTeam && (
+  <>
+    <div className="event-description">
+      <span className="player">{event.player}</span>
+      <span className="event-type">{eventDescriptions[event.type]}</span>
+    </div>
+    <img src={eventIcons[event.type]} alt={event.type} className="icon" />
+  </>
+)}
+      </div>
 
-      {event.team === localTeamId && (
-        <div className="event-content">
-          <span className="description">{eventDescriptions[event.type]} {event.player}</span>
-          <img src={eventIcons[event.type]} alt={event.type} className="icon" />
-        </div>
-      )}
+      {/* Div para el minuto */}
+      <div className="event-minute">
+        <span className="minute">{event.minute}'</span>
+      </div>
 
-
-      {event.team !== localTeamId && (
-        <div className="event-content">
-          <img src={eventIcons[event.type]} alt={event.type} className="icon" />
-          <span className="description">{eventDescriptions[event.type]} {event.player}</span>
-        </div>
-      )}
-
+      {/* Div para el equipo visitante */}
+      <div className={`event-content visitor-team ${!isLocalTeam ? 'active' : ''}`}>
+      {!isLocalTeam && (
+  <>
+    <img src={eventIcons[event.type]} alt={event.type} className="icon" />
+    <div className="event-description">
+      <span className="player">{event.player}</span>
+      <span className="event-type">{eventDescriptions[event.type]}</span>
+    </div>
+  </>
+)}
+      </div>
     </div>
   );
 };
