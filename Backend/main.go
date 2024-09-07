@@ -133,6 +133,9 @@ type RabbitMQ struct {
 	err    error
 }
 
+var eventos = []Event{}
+
+/*
 var eventos = []Event{
 	{ID: 1, MatchID: 1, Team: "FC Barcelona", Player: "Gavi", Type: "goal", Minute: 15},
 	{ID: 14, MatchID: 2, Team: "Atlético de Madrid", Player: "Suárez", Type: "goal", Minute: 10},
@@ -160,3 +163,4 @@ var eventos = []Event{
 	{ID: 25, MatchID: 2, Team: "Sevilla FC", Player: "Rakitic", Type: "end", Minute: 90},
 	{ID: 13, MatchID: 1, Team: "Real Madrid", Player: "Modric", Type: "end", Minute: 90},
 }
+*/

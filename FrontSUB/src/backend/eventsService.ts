@@ -1,10 +1,5 @@
 import { type Event } from "../types/match";
-
-/* 
-    TODO: Implement node.js backend to fetch events from RabbitMQ. 
-    The server should be able to subscribe to topics, receive messages from RabbitMQ
-    and send them to the frontend via WebSockets.
-*/
+import RabbitMQClient from "./rabbitmq";
 
 let eventos : Event[] = [
     { id: 1, matchId: 1, team: "FC Barcelona", player: "Gavi", type: "goal", minute: 15 },
@@ -21,7 +16,7 @@ let eventos : Event[] = [
     { id: 12, matchId: 1, team: "Real Madrid", player: "Courtois", type: "half-time", minute: 45 },
     { id: 13, matchId: 1, team: "Real Madrid", player: "Modric", type: "end", minute: 90 }
 ];
-
+/*
 export const fetchEvents= async (callback: (evento: Event) => void) => {
     eventos.sort((a, b) => a.minute - b.minute);
     eventos.forEach((evento, index) => {
@@ -30,12 +25,7 @@ export const fetchEvents= async (callback: (evento: Event) => void) => {
         }, index * 2000);
     });
 };
-
-/*
-TODO: 
-This is an example of how to update events in real-time using callbacks.
-But this has to be implemented with Websockets, not with RabbitMQ.
----
+*/
 
 export const fetchEvents = async (callback: (evento: Event) => void) => {
     const rmqInstance = new RabbitMQClient(["match.1.#"]);
@@ -45,4 +35,3 @@ export const fetchEvents = async (callback: (evento: Event) => void) => {
         callback(evento);
     });
 };
-*/
