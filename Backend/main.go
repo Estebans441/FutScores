@@ -22,18 +22,6 @@ func main() {
 	REST API
 ****************/
 
-func intializeRouter() {
-	// Create a new router
-	router := gin.Default()
-
-	// Define the routes
-	router.GET("/events", publishAllEvents)
-	router.POST("/events", createEvent)
-
-	// Run the server
-	router.Run("localhost:8080")
-}
-
 func publishAllEvents(c *gin.Context) {
 	for _, evento := range eventos {
 		publishEvent(evento)
@@ -47,10 +35,22 @@ func createEvent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	evento.ID = len(eventos) + 1
+	defer publishEvent(evento)
 	eventos = append(eventos, evento)
 	c.JSON(http.StatusCreated, evento)
+}
+
+func intializeRouter() {
+	// Create a new router
+	router := gin.Default()
+
+	// Define the routes
+	router.GET("/events", publishAllEvents)
+	router.POST("/events", createEvent)
+
+	// Run the server
+	router.Run("localhost:8080")
 }
 
 /***************
