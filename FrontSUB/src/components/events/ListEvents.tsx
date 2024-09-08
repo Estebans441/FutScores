@@ -5,15 +5,16 @@ import MatchEventService from '../../backend/matchEventService';
 
 interface Props {
   match: Match;
+  RABBITMQ_HOST: string;
 }
 
-const ListEvents: React.FC<Props> = ({ match }) => {
+const ListEvents: React.FC<Props> = ({ match, RABBITMQ_HOST }) => {
   // List of events to be displayed
   const [events, setEvents] = useState<Event[]>([]);
   const localTeamId = match.homeTeam;
   
   // MatchEventService instance. It will handle the connection to RabbitMQ
-  const matchEventService = new MatchEventService(["#"], match, setEvents); // # is a wildcard to receive all events
+  const matchEventService = new MatchEventService(["#"], match, RABBITMQ_HOST, setEvents); // # is a wildcard to receive all events
 
   useEffect(() => {
     matchEventService.activate();

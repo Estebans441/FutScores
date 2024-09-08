@@ -6,10 +6,10 @@ export default class MatchEventService {
   client: Client;
   match: Match;
 
-  constructor(eventTypes: string[], match: Match, setEvents: (events: (prevEvents: Event[]) => Event[]) => void) {
+  constructor(eventTypes: string[], match: Match, RABBITMQ_HOST : string, setEvents: (events: (prevEvents: Event[]) => Event[]) => void) {
     this.match = match;  
     this.client = new Client({
-        brokerURL: 'ws://localhost:15674/ws', // URL del WebSocket de RabbitMQ
+        brokerURL: `ws://${RABBITMQ_HOST}:15674/ws`, // URL del WebSocket de RabbitMQ
         connectHeaders: {
             login: 'guest',
             passcode: 'guest',

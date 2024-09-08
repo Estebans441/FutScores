@@ -1,11 +1,12 @@
 ---
 import ListEvents from "../../components/events/ListEvents";
 import Layout from "../../layouts/Layout.astro";
-import { getMatchById } from "../../backend/matchesService";
+import { getMatchById, getRabbitMQHost } from "../../backend/matchesService";
 
 const { id } = Astro.params;
 
 const match = await getMatchById(Number(id));
+const RABBITMQ_HOST = getRabbitMQHost();
 
 if (!match) {
     throw new Error(`No se encontró el partido con ID: ${id}`);
@@ -32,7 +33,7 @@ if (!match) {
 
     { /* EVENTOS */}
     <section class="event-subscription max-w-5xl mx-auto text-center">
-        <ListEvents client:visible match={match}/>
+        <ListEvents client:visible match={match} RABBITMQ_HOST={RABBITMQ_HOST}/>
     </section>
 </Layout>
 
