@@ -1,0 +1,62 @@
+---
+import ViewTransitions from 'astro/components/ViewTransitions.astro';
+import Header from '../components/Header.astro';
+
+const title = "FutScores";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content="Astro description" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+        <ViewTransitions />
+    </head>
+    <body>
+        <Header />
+        <main>
+            <slot />
+        </main>
+    </body>
+</html>
+
+<style is:global>
+    :root {
+        --accent: 136, 58, 234;
+        --accent-light: 224, 204, 250;
+        --accent-dark: 49, 10, 101;
+        --accent-gradient: linear-gradient(
+            45deg,
+            rgb(var(--accent)),
+            rgb(var(--accent-light)) 30%,
+            white 60%
+        );
+    }
+    html {
+        font-family: system-ui, sans-serif;
+        background: #ffffff;
+    }
+    body {
+        overflow-y: scroll; /* Forzar la aparición del scrollbar */
+    }
+
+    section h2 {
+		color: green;
+		text-align: center;
+		font-size: 2rem;
+		margin-bottom: 1rem;
+		font-weight: 600;
+	}
+
+    .text-gradient {
+        background-image: linear-gradient(to right, rgb(30, 116, 30) 0%, rgb(241, 245, 3) 50%, rgb(241, 245, 3) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 400%;
+        background-position: 0%;
+    }
+</style>
