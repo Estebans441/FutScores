@@ -1,0 +1,18 @@
+---
+import Card from './CardMatch.astro';
+import { getMatches } from '../../backend/matchesService';
+
+const matches = await getMatches();
+---
+
+<section class="matches-section">
+    <h2>Partidos Disponibles</h2>
+    <ul role="list" class="link-card-grid">
+        {matches.map(match => (
+            <Card 
+                key={match.id}
+                match={match}
+            />
+        ))}
+    </ul>
+</section>
