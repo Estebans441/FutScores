@@ -25,7 +25,7 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
     ports:
-      - 4321:4321
+      - 4322:4321
     depends_on:
       - backend
     environment:
