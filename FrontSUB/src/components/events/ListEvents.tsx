@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Client } from '@stomp/stompjs';
 import { fetchEvents } from "../../backend/eventsService";
 import { type Match, type Event } from "../../types/match";
 import MatchEventCard from './MatchEventCard';
@@ -12,11 +13,33 @@ const ListEvents: React.FC<Props> = ({ match }) => {
   const localTeamId = match.homeTeam;
 
   useEffect(() => {
-    fetchEvents((evento) => {
-        console.log(evento);
-        setEvents((prevEvents) => [...prevEvents, evento]);
+    const client = new Client({
+        brokerURL: 'ws://localhost:15674/ws', // URL del WebSocket de RabbitMQ
+        connectHeaders: {
+            login: 'guest',
+            passcode: 'guest',
+        },
+        debug: (str) => {
+            console.log(str);
+        },
+        onConnect: () => {
+            console.log('Conectado a RabbitMQ WebSocket');
+            client.subscribe(`/exchange/match_events/match.${match.id}.#`, (message) => {
+              console.log('Mensaje recibido:', message.body);
+              setEvents((prevEvents) => [...prevEvents, JSON.parse(message.body)]);
+            });
+        },
+        onStompError: (frame) => {
+            console.error('Error de STOMP:', frame.headers['message']);
+        },
     });
-  }, []);
+
+    client.activate();
+
+    return () => {
+        client.deactivate();
+    };
+}, []);
 
   return (
     <div className="flex flex-col items-center relative w-100 bg-white px-20">
