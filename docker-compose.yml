@@ -2,7 +2,7 @@ services:
   broker:
     image: futscoresbroker
     build:
-      context: ./RabbitMQ
+      context: ./Backend/broker
       dockerfile: Dockerfile
     ports:
       - 5672:5672
@@ -11,7 +11,7 @@ services:
   backend:
     image: futscoresbackend
     build:
-      context: ./Backend
+      context: ./Backend/server
       dockerfile: Dockerfile
     ports:
       - 8080:8080
@@ -22,7 +22,7 @@ services:
   frontend:
     image: futscoresfrontend
     build:
-      context: ./FrontSUB
+      context: ./Frontend
       dockerfile: Dockerfile
     ports:
       - 4321:4321
