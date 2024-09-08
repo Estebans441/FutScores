@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Client } from '@stomp/stompjs';
-import { fetchEvents } from "../../backend/eventsService";
 import { type Match, type Event } from "../../types/match";
 import MatchEventCard from './MatchEventCard';
 
@@ -10,6 +9,7 @@ interface Props {
 
 const ListEvents: React.FC<Props> = ({ match }) => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [eventTypes, setEventTypes] = useState<string[]>(["goal", "penalty"]);
   const localTeamId = match.homeTeam;
 
   useEffect(() => {
@@ -23,11 +23,13 @@ const ListEvents: React.FC<Props> = ({ match }) => {
             console.log(str);
         },
         onConnect: () => {
+          for (let eventType of eventTypes) {
             console.log('Conectado a RabbitMQ WebSocket');
-            client.subscribe(`/exchange/match_events/match.${match.id}.#`, (message) => {
+            client.subscribe(`/exchange/match_events/match.${match.id}.event.${eventType}`, (message) => {
               console.log('Mensaje recibido:', message.body);
               setEvents((prevEvents) => [...prevEvents, JSON.parse(message.body)]);
             });
+          }
         },
         onStompError: (frame) => {
             console.error('Error de STOMP:', frame.headers['message']);
