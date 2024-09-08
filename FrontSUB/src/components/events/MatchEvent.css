@@ -1,0 +1,117 @@
+.event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 700px;
+  margin: 10px 0;
+  position: relative;
+}
+
+.local-team, .visitor-team {
+  flex: 1; /* Las cajas ocupan todo el espacio disponible */
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.local-team {
+  justify-content: flex-end;
+  margin-right: 10px; /* Separación entre el minuto y la caja del equipo local */
+}
+
+.visitor-team {
+  justify-content: flex-start;
+  margin-left: 10px; /* Separación entre el minuto y la caja del equipo visitante */
+}
+
+.event-minute {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0; /* Evita que el minuto se comprima */
+  position: relative;
+}
+
+.minute {
+  z-index: 1;
+  background: #bbf7bd; /* Fondo verde */
+  color: #18551a; /* Texto blanco */
+  padding: 10px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 18px;
+  width: 50px;
+  height: 50px; /* Alto igual al ancho para un círculo perfecto */
+  text-align: center;
+  line-height: 20px; /* Alineación vertical del texto */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.event-content {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 40px; /* Aseguramos que el div tenga al menos esta altura */
+  width: 100%; /* Ocupa todo el espacio disponible */
+}
+
+/* Oculta el borde y fondo si no hay contenido */
+.active {
+  background: #4CAF50; /* Fondo blanco para el contenido */
+}
+
+.event-description {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.player {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff; /* Puedes ajustar este color según el diseño que desees */
+}
+
+.event-type {
+  font-size: 12px;
+  font-weight: normal;
+  color: #ffffff; /* También puedes ajustar este color si es necesario */
+  margin-top: 4px; /* Separación entre el nombre del jugador y el tipo de evento */
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  margin-left: px;
+}
+
+
+/* Conectores */
+.local-team.active::before {
+  z-index: 0;
+  content: '';
+  position: absolute;
+  top: 50%; /* Centrado verticalmente */
+  right: -30px; /* Ajusta la distancia del conector */
+  width: 30px; /* Ancho del conector */
+  height: 30px; /* Altura del conector */
+  background-color: #bbf7bd; /* Mismo color que el fondo de la caja */
+  transform: translateY(-50%); /* Alineación vertical */
+}
+
+.visitor-team.active::after {
+  z-index: 0;
+  content: '';
+  position: absolute;
+  top: 50%; /* Centrado verticalmente */
+  left: -30px; /* Ajusta la distancia del conector */
+  width: 30px; /* Ancho del conector */
+  height: 30px; /* Altura del conector */
+  background-color: #bbf7bd; /* Mismo color que el fondo de la caja */
+  transform: translateY(-50%); /* Alineación vertical */
+}

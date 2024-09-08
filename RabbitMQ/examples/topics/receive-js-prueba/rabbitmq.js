@@ -1,38 +1,44 @@
 import { connect } from "amqplib";
 
 export default class RabbitMQClient {
-    constructor(exchange, bindingKey, queue) {
+    constructor(exchange, matches) {
         this.exchangeName = exchange;
-        this.bindingKey = bindingKey;
-        this.queueName = queue;
+        this.matches = matches;
     }
 
-    async initialize() {
+    async initiliaze() {
         this.connection = await connect("amqp://localhost:5672");
         this.channel = await this.connection.createChannel();
         this.exchange = await this.channel.assertExchange(
-            this.exchangeName, 
-            "direct", 
+            this.exchangeName, 'topic',
             { 
                 durable: true 
             }
         );
     }
 
-    async subscribe(callback) {
+    async subscribe() {
+        await this.channel.assertQueue('', { exclusive: true }, (error2, q) => {
+            if (error2) {
+                throw error2;
+            }
+            this.queueName = q.queue;
+        });
+
+
+        this.matches.forEach((match) => {
+            this.channel.bindQueue(
+                this.queueName, 
+                this.exchangeName, 
+                match
+            );
+        });
         console.log("Waiting for messages...");
-        await this.channel.assertQueue(this.queueName);
-        await this.channel.bindQueue(
-            this.queueName, 
-            this.exchangeName, 
-            this.bindingKey
-        );
 
         this.channel.consume(this.queueName, (message) => {
             if (message != null) {
                 console.log(`Received message: ${message.content.toString()}`);
-                callback(message.content.toString());
-                this.channel.ack(message);
+            this.channel.ack(message);
             }
         });
     }
