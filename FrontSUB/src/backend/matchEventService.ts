@@ -17,6 +17,12 @@ export default class MatchEventService {
         debug: (str) => {
             console.log(str);
         },
+        onConnect: () => {
+            console.log('Conectado a RabbitMQ WebSocket');
+            for (let eventType of eventTypes) {
+                this.subscribe(eventType, setEvents);
+            }
+        },
         onStompError: (frame) => {
             console.error('Error de STOMP:', frame.headers['message']);
         },
@@ -36,6 +42,10 @@ export default class MatchEventService {
     } else {
       console.error('No se puede suscribir, el cliente no está conectado.');
     }
+  }
+
+  unsubscribe(eventType: string) {
+    this.client.unsubscribe(`/exchange/match_events/match.${this.match.id}.event.${eventType}`);
   }
 
   activate() {

@@ -8,34 +8,33 @@ interface Props {
 }
 
 const ListEvents: React.FC<Props> = ({ match }) => {
+  // List of events to be displayed
   const [events, setEvents] = useState<Event[]>([]);
-  const [eventTypes, setEventTypes] = useState<string[]>(["#"]);
   const localTeamId = match.homeTeam;
-  const matchEventService = new MatchEventService(eventTypes, match, setEvents);
+  
+  // MatchEventService instance. It will handle the connection to RabbitMQ
+  const matchEventService = new MatchEventService(["#"], match, setEvents); // # is a wildcard to receive all events
 
   useEffect(() => {
     matchEventService.activate();
-    matchEventService.client.onConnect = () => {
-      console.log('Conectado a RabbitMQ WebSocket');
-      for (let eventType of eventTypes) {
-        matchEventService.subscribe(eventType, setEvents);
-      }
-    };
     return () => {
         matchEventService.deactivate();
     };
-}, []);
+  }, []);
 
   return (
-    <div className="flex flex-col items-center relative w-100 bg-white px-20">
-      {events.map((event) => (
-        <MatchEventCard
+    <>
+      <h2> Eventos  </h2>
+      <div className="flex flex-col items-center relative w-100 bg-white px-20">
+        {events.map((event) => (
+          <MatchEventCard
           key={event.id}
           event={event}
           localTeamId= {localTeamId}
-        />
-      ))}
-    </div>
+          />
+        ))}
+      </div>
+    </>
   );
 };
 
