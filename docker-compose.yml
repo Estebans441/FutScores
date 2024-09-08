@@ -1,15 +1,16 @@
 services:
   broker:
-    image: futscoresbroker
-    build:
-      context: ./Backend/broker
-      dockerfile: Dockerfile
+    image: rabbitmq:3.13-management
     ports:
       - 5672:5672
       - 15672:15672
       - 15674:15674
+    command: >
+      sh -c "
+      rabbitmq-plugins enable rabbitmq_stomp &&
+      rabbitmq-plugins enable rabbitmq_web_stomp &&
+      rabbitmq-server"
   backend:
-    image: futscoresbackend
     build:
       context: ./Backend/server
       dockerfile: Dockerfile
@@ -20,7 +21,6 @@ services:
     environment:
       - RABBITMQ_HOST=broker
   frontend:
-    image: futscoresfrontend
     build:
       context: ./Frontend
       dockerfile: Dockerfile
