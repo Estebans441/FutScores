@@ -63,7 +63,7 @@ func initializeRouter() {
 	router.DELETE("/events/:id", deleteEvent)
 	router.PUT("/events/:id", updateEvent)
 
-	router.Run(":8081") // Start server on port 8081
+	router.Run(":8080") // Start server on port 8080
 }
 
 // Function to initialize sample matches in Redis
