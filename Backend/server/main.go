@@ -58,18 +58,26 @@ func connectToRedis(redisHost string) {
 // Function to initialize sample matches in Redis
 func initializeSampleMatches() {
 	var matches = []Match{
-		{ID: 1, HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
-		{ID: 2, HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
-		{ID: 3, HomeTeam: "Valencia CF", HomeTeamAbbr: "VAL", HomeImg: "/team_logos/Valencia CF.png", AwayTeam: "Villarreal CF", AwayTeamAbbr: "VIL", AwayImg: "/team_logos/Villarreal CF.png", Date: "2023-10-03", Time: "22:00"},
-		{ID: 4, HomeTeam: "Real Sociedad", HomeTeamAbbr: "RSO", HomeImg: "/team_logos/Real Sociedad.png", AwayTeam: "Athletic Bilbao", AwayTeamAbbr: "ATH", AwayImg: "/team_logos/Athletic Bilbao.png", Date: "2023-10-04", Time: "18:00"},
-		{ID: 5, HomeTeam: "Real Betis Balompié", HomeTeamAbbr: "BET", HomeImg: "/team_logos/Real Betis Balompié.png", AwayTeam: "Deportivo Alavés", AwayTeamAbbr: "ALA", AwayImg: "/team_logos/Deportivo Alavés.png", Date: "2023-10-05", Time: "20:00"},
-		{ID: 6, HomeTeam: "Celta de Vigo", HomeTeamAbbr: "CEL", HomeImg: "/team_logos/Celta de Vigo.png", AwayTeam: "RCD Espanyol Barcelona", AwayTeamAbbr: "ESP", AwayImg: "/team_logos/RCD Espanyol Barcelona.png", Date: "2023-10-06", Time: "22:00"},
+		{HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
+		{HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
+		{HomeTeam: "Valencia CF", HomeTeamAbbr: "VAL", HomeImg: "/team_logos/Valencia CF.png", AwayTeam: "Villarreal CF", AwayTeamAbbr: "VIL", AwayImg: "/team_logos/Villarreal CF.png", Date: "2023-10-03", Time: "22:00"},
+		{HomeTeam: "Real Sociedad", HomeTeamAbbr: "RSO", HomeImg: "/team_logos/Real Sociedad.png", AwayTeam: "Athletic Bilbao", AwayTeamAbbr: "ATH", AwayImg: "/team_logos/Athletic Bilbao.png", Date: "2023-10-04", Time: "18:00"},
+		{HomeTeam: "Real Betis Balompié", HomeTeamAbbr: "BET", HomeImg: "/team_logos/Real Betis Balompié.png", AwayTeam: "Deportivo Alavés", AwayTeamAbbr: "ALA", AwayImg: "/team_logos/Deportivo Alavés.png", Date: "2023-10-05", Time: "20:00"},
+		{HomeTeam: "Celta de Vigo", HomeTeamAbbr: "CEL", HomeImg: "/team_logos/Celta de Vigo.png", AwayTeam: "RCD Espanyol Barcelona", AwayTeamAbbr: "ESP", AwayImg: "/team_logos/RCD Espanyol Barcelona.png", Date: "2023-10-06", Time: "22:00"},
 	}
 
 	for _, match := range matches {
+		// Increment the match ID counter in Redis
+		newID, err := redisClient.Incr(ctx, "match_id_counter").Result()
+		if err != nil {
+			log.Printf("Unable to increment match ID counter in Redis: %v", err)
+			continue
+		}
+
+		match.ID = int(newID)
 		matchID := strconv.Itoa(match.ID)
 
-		err := redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
+		err = redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
 			"id":           match.ID,
 			"homeTeam":     match.HomeTeam,
 			"homeTeamAbbr": match.HomeTeamAbbr,
@@ -102,7 +110,7 @@ func initializeRouter() {
 	router.PUT("/matches/:id", updateMatch)
 	router.DELETE("/matches/:id", deleteMatch)
 
-	router.Run(":8081") // Start server on port 8081
+	router.Run(":8080") // Start server on port 8080
 }
 
 // CRUD Operations for Matches
@@ -115,10 +123,18 @@ func createMatch(c *gin.Context) {
 		return
 	}
 
+	// Increment the match ID counter in Redis
+	newID, err := redisClient.Incr(ctx, "match_id_counter").Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to generate new match ID: " + err.Error()})
+		return
+	}
+
+	match.ID = int(newID)
 	matchID := strconv.Itoa(match.ID) // Convert ID to string
 
 	// Save match to Redis as hash
-	err := redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
+	err = redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
 		"id":           match.ID,
 		"homeTeam":     match.HomeTeam,
 		"homeTeamAbbr": match.HomeTeamAbbr,
@@ -134,6 +150,17 @@ func createMatch(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save match in Redis: " + err.Error()})
 		return
 	}
+
+	// Publish event to RabbitMQ after creating match
+	event := Event{
+		ID:      match.ID,
+		MatchID: match.ID,
+		Type:    "created",
+		Team:    "", // You can fill this with relevant data if needed
+		Player:  "", // You can fill this with relevant data if needed
+		Minute:  0,  // You can fill this with relevant data if needed
+	}
+	publishEvent(event)
 
 	c.JSON(http.StatusCreated, match)
 }
