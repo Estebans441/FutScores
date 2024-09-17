@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
@@ -45,6 +46,8 @@ func main() {
 
 func initializeRouter() {
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	// Routes for CRUD operations on matches
 	router.POST("/matches", createMatch)

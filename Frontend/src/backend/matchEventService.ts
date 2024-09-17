@@ -6,26 +6,26 @@ export default class MatchEventService {
   client: Client;
   match: Match;
 
-  constructor(eventTypes: string[], match: Match, RABBITMQ_HOST : string, setEvents: (events: (prevEvents: Event[]) => Event[]) => void) {
-    this.match = match;  
+  constructor(eventTypes: string[], match: Match, RABBITMQ_HOST: string, setEvents: (events: (prevEvents: Event[]) => Event[]) => void) {
+    this.match = match;
     this.client = new Client({
-        brokerURL: `ws://${RABBITMQ_HOST}:15674/ws`, // URL del WebSocket de RabbitMQ
-        connectHeaders: {
-            login: 'guest',
-            passcode: 'guest',
-        },
-        debug: (str) => {
-            console.log(str);
-        },
-        onConnect: () => {
-            console.log('Conectado a RabbitMQ WebSocket');
-            for (let eventType of eventTypes) {
-                this.subscribe(eventType, setEvents);
-            }
-        },
-        onStompError: (frame) => {
-            console.error('Error de STOMP:', frame.headers['message']);
-        },
+      brokerURL: `ws://${RABBITMQ_HOST}:15674/ws`, // URL del WebSocket de RabbitMQ
+      connectHeaders: {
+        login: 'guest',
+        passcode: 'guest',
+      },
+      debug: (str) => {
+        console.log(str);
+      },
+      onConnect: () => {
+        console.log('Conectado a RabbitMQ WebSocket');
+        for (let eventType of eventTypes) {
+          this.subscribe(eventType, setEvents);
+        }
+      },
+      onStompError: (frame) => {
+        console.error('Error de STOMP:', frame.headers['message']);
+      },
     });
   }
 
