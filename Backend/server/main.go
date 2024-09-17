@@ -121,10 +121,12 @@ func initializeRouter() {
 	router.GET("/matches", getAllMatches)
 	router.PUT("/matches/:id", updateMatch)
 	router.DELETE("/matches/:id", deleteMatch)
+	router.GET("/matches/:id/events", getAllEvents)
 
 	// Routes for CRUD operations on events
 	router.POST("/events", createEvent)
 	router.GET("/events/:id", getEvent)
+	router.DELETE("/events/:id", deleteEvent)
 
 	router.Run(":8081") // Start server on port 8081
 }
@@ -281,6 +283,20 @@ func deleteMatch(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
 }
 
+// Handler to delete an event by ID
+func deleteEvent(c *gin.Context) {
+	eventID := c.Param("id")
+
+	// Delete event from Redis
+	err := redisClient.Del(ctx, "event:"+eventID).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete event: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Event deleted successfully"})
+}
+
 // Handler to get all matches
 func getAllMatches(c *gin.Context) {
 	// Retrieve all match keys from Redis
@@ -314,6 +330,47 @@ func getAllMatches(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, allMatches)
+}
+
+// Handler to get all events of a match
+func getAllEvents(c *gin.Context) {
+	matchID := c.Param("id")
+
+	// Retrieve all event keys from Redis
+	keys, err := redisClient.Keys(ctx, "event:*").Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve event keys: " + err.Error()})
+		return
+	}
+
+	var allEvents []Event
+	// Iterate over each key and retrieve event data
+	for _, key := range keys {
+		result, err := redisClient.HGetAll(ctx, key).Result()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve event data: " + err.Error()})
+			return
+		}
+
+		var event Event
+		event.ID, _ = strconv.Atoi(result["id"])
+		event.MatchID, _ = strconv.Atoi(result["matchId"])
+		event.Team = result["team"]
+		event.Player = result["player"]
+		event.Type = result["type"]
+		event.Minute, _ = strconv.Atoi(result["minute"])
+
+		matchIDInt, err := strconv.Atoi(matchID)
+		if err != nil {
+			log.Printf("Unable to convert matchID to int: %v", err)
+			continue
+		}
+		if event.MatchID == matchIDInt {
+			allEvents = append(allEvents, event)
+		}
+	}
+
+	c.JSON(http.StatusOK, allEvents)
 }
 
 // Handler to update an existing match by ID
