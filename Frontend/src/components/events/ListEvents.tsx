@@ -20,7 +20,7 @@ const ListEvents: React.FC<Props> = ({ match, RABBITMQ_HOST }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/matches/${match.id}/events`);
+        const response = await fetch(`http://localhost:8081/matches/${match.id}/events`);
         if (!response.ok) {
           throw new Error('Error fetching events');
         }
