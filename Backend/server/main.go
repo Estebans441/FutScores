@@ -30,6 +30,9 @@ func main() {
 	// Connect to Redis
 	connectToRedis(redisHost)
 
+	// Initialize Redis data with sample matches
+	initializeSampleMatches()
+
 	// Start RabbitMQ
 	startRabbitMQ(rabbitHost)
 	initializeRouter()
@@ -52,6 +55,38 @@ func connectToRedis(redisHost string) {
 	log.Println("Connected to Redis successfully")
 }
 
+// Function to initialize sample matches in Redis
+func initializeSampleMatches() {
+	var matches = []Match{
+		{ID: 1, HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
+		{ID: 2, HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
+		{ID: 3, HomeTeam: "Valencia CF", HomeTeamAbbr: "VAL", HomeImg: "/team_logos/Valencia CF.png", AwayTeam: "Villarreal CF", AwayTeamAbbr: "VIL", AwayImg: "/team_logos/Villarreal CF.png", Date: "2023-10-03", Time: "22:00"},
+		{ID: 4, HomeTeam: "Real Sociedad", HomeTeamAbbr: "RSO", HomeImg: "/team_logos/Real Sociedad.png", AwayTeam: "Athletic Bilbao", AwayTeamAbbr: "ATH", AwayImg: "/team_logos/Athletic Bilbao.png", Date: "2023-10-04", Time: "18:00"},
+		{ID: 5, HomeTeam: "Real Betis Balompié", HomeTeamAbbr: "BET", HomeImg: "/team_logos/Real Betis Balompié.png", AwayTeam: "Deportivo Alavés", AwayTeamAbbr: "ALA", AwayImg: "/team_logos/Deportivo Alavés.png", Date: "2023-10-05", Time: "20:00"},
+		{ID: 6, HomeTeam: "Celta de Vigo", HomeTeamAbbr: "CEL", HomeImg: "/team_logos/Celta de Vigo.png", AwayTeam: "RCD Espanyol Barcelona", AwayTeamAbbr: "ESP", AwayImg: "/team_logos/RCD Espanyol Barcelona.png", Date: "2023-10-06", Time: "22:00"},
+	}
+
+	for _, match := range matches {
+		matchID := strconv.Itoa(match.ID)
+
+		err := redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
+			"id":           match.ID,
+			"homeTeam":     match.HomeTeam,
+			"homeTeamAbbr": match.HomeTeamAbbr,
+			"homeImg":      match.HomeImg,
+			"awayTeam":     match.AwayTeam,
+			"awayTeamAbbr": match.AwayTeamAbbr,
+			"awayImg":      match.AwayImg,
+			"date":         match.Date,
+			"time":         match.Time,
+		}).Err()
+
+		if err != nil {
+			log.Printf("Unable to save match in Redis: %v", err)
+		}
+	}
+}
+
 /***************
 	REST API
 ****************/
@@ -64,6 +99,7 @@ func initializeRouter() {
 	router.POST("/matches", createMatch)
 	router.GET("/matches/:id", getMatch)
 	router.GET("/matches", getAllMatches)
+	router.PUT("/matches/:id", updateMatch)
 	router.DELETE("/matches/:id", deleteMatch)
 
 	router.Run(":8081") // Start server on port 8081
@@ -108,11 +144,14 @@ func getMatch(c *gin.Context) {
 
 	// Retrieve match from Redis hash
 	result, err := redisClient.HGetAll(ctx, "match:"+matchID).Result()
-	if err == redis.Nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
-		return
-	} else if err != nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match: " + err.Error()})
+		return
+	}
+
+	// Check if the match exists
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
 		return
 	}
 
@@ -145,9 +184,79 @@ func deleteMatch(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
 }
 
-// Handler to get all matches (implementation needed)
+// Handler to get all matches
 func getAllMatches(c *gin.Context) {
-	// This function would typically scan for keys or iterate through keys to retrieve all matches
+	// Retrieve all match keys from Redis
+	keys, err := redisClient.Keys(ctx, "match:*").Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match keys: " + err.Error()})
+		return
+	}
+
+	var allMatches []Match
+	// Iterate over each key and retrieve match data
+	for _, key := range keys {
+		result, err := redisClient.HGetAll(ctx, key).Result()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match data: " + err.Error()})
+			return
+		}
+
+		var match Match
+		match.ID, _ = strconv.Atoi(result["id"])
+		match.HomeTeam = result["homeTeam"]
+		match.HomeTeamAbbr = result["homeTeamAbbr"]
+		match.HomeImg = result["homeImg"]
+		match.AwayTeam = result["awayTeam"]
+		match.AwayTeamAbbr = result["awayTeamAbbr"]
+		match.AwayImg = result["awayImg"]
+		match.Date = result["date"]
+		match.Time = result["time"]
+
+		allMatches = append(allMatches, match)
+	}
+
+	c.JSON(http.StatusOK, allMatches)
+}
+
+// Handler to update an existing match by ID
+func updateMatch(c *gin.Context) {
+	matchID := c.Param("id")
+	var match Match
+	if err := c.BindJSON(&match); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Verify if the match exists
+	exists, err := redisClient.Exists(ctx, "match:"+matchID).Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to verify match existence: " + err.Error()})
+		return
+	} else if exists == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+
+	// Update match in Redis as hash
+	err = redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
+		"id":           match.ID,
+		"homeTeam":     match.HomeTeam,
+		"homeTeamAbbr": match.HomeTeamAbbr,
+		"homeImg":      match.HomeImg,
+		"awayTeam":     match.AwayTeam,
+		"awayTeamAbbr": match.AwayTeamAbbr,
+		"awayImg":      match.AwayImg,
+		"date":         match.Date,
+		"time":         match.Time,
+	}).Err()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update match in Redis: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, match)
 }
 
 /***************
