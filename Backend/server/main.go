@@ -66,14 +66,11 @@ func initializeRouter() {
 	router.GET("/matches", getAllMatches)
 	router.DELETE("/matches/:id", deleteMatch)
 
-	// Routes for event management
-	//router.GET("/events", publishAllEvents)
-	//router.POST("/events", createEvent)
-
-	router.Run(":8081") // Start server on port 8080
+	router.Run(":8081") // Start server on port 8081
 }
 
 // CRUD Operations for Matches
+
 // Handler to create a new match
 func createMatch(c *gin.Context) {
 	var match Match
@@ -82,17 +79,23 @@ func createMatch(c *gin.Context) {
 		return
 	}
 
-	matchID := strconv.Itoa(match.ID)     // Convert ID to string
-	matchJSON, err := json.Marshal(match) // Serialize match to JSON
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to serialize match"})
-		return
-	}
+	matchID := strconv.Itoa(match.ID) // Convert ID to string
 
-	// Save match to Redis
-	err = redisClient.Set(ctx, "match:"+matchID, matchJSON, 0).Err()
+	// Save match to Redis as hash
+	err := redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
+		"id":           match.ID,
+		"homeTeam":     match.HomeTeam,
+		"homeTeamAbbr": match.HomeTeamAbbr,
+		"homeImg":      match.HomeImg,
+		"awayTeam":     match.AwayTeam,
+		"awayTeamAbbr": match.AwayTeamAbbr,
+		"awayImg":      match.AwayImg,
+		"date":         match.Date,
+		"time":         match.Time,
+	}).Err()
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save match in Redis"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save match in Redis: " + err.Error()})
 		return
 	}
 
@@ -103,53 +106,30 @@ func createMatch(c *gin.Context) {
 func getMatch(c *gin.Context) {
 	matchID := c.Param("id")
 
-	// Retrieve match from Redis
-	matchJSON, err := redisClient.Get(ctx, "match:"+matchID).Result()
+	// Retrieve match from Redis hash
+	result, err := redisClient.HGetAll(ctx, "match:"+matchID).Result()
 	if err == redis.Nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
 		return
 	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match: " + err.Error()})
 		return
 	}
 
-	// Deserialize JSON to Match object
+	// Deserialize to Match struct
 	var match Match
-	if err := json.Unmarshal([]byte(matchJSON), &match); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to deserialize match"})
-		return
-	}
+	match.ID, _ = strconv.Atoi(result["id"])
+	match.HomeTeam = result["homeTeam"]
+	match.HomeTeamAbbr = result["homeTeamAbbr"]
+	match.HomeImg = result["homeImg"]
+	match.AwayTeam = result["awayTeam"]
+	match.AwayTeamAbbr = result["awayTeamAbbr"]
+	match.AwayImg = result["awayImg"]
+	match.Date = result["date"]
+	match.Time = result["time"]
 
 	c.JSON(http.StatusOK, match)
 }
-
-/*
-func publishAllEvents(c *gin.Context) { // Test
-	// Publish all events to RabbitMQ
-	for _, evento := range eventos { // TODO: Get events from database not from global variable
-		publishEvent(evento)
-		time.Sleep(1 * time.Second)
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "All events published"})
-}
-
-func createEvent(c *gin.Context) {
-	var evento Event
-	// Bind JSON to Event struct
-	if err := c.BindJSON(&evento); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// TODO: Save event in database
-	evento.ID = len(eventos) + 1
-	eventos = append(eventos, evento) // TODO: Remove this line when using a database
-	
-	// Publish event to RabbitMQ
-	publishEvent(evento)
-	c.JSON(http.StatusCreated, evento)
-}
-*/
 
 // Handler to delete a match by ID
 func deleteMatch(c *gin.Context) {
@@ -158,23 +138,23 @@ func deleteMatch(c *gin.Context) {
 	// Delete match from Redis
 	err := redisClient.Del(ctx, "match:"+matchID).Err()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete match"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete match: " + err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
 }
 
-// Handler to get all matches
+// Handler to get all matches (implementation needed)
 func getAllMatches(c *gin.Context) {
-	// Implementation needed to retrieve all matches from Redis
-	// This would typically involve scanning or iterating through keys
+	// This function would typically scan for keys or iterate through keys to retrieve all matches
 }
 
 /***************
     RABBITMQ
 ****************/
 
+// RabbitMQ configuration (unchanged)
 var rabbitmq RabbitMQ
 
 // Function to start RabbitMQ
@@ -213,7 +193,7 @@ func failOnError(err error, msg string) {
 	}
 }
 
-// Function to publish events to RabbitMQ
+// Function to publish events to RabbitMQ (unchanged)
 func publishEvent(event Event) {
 	topic := "match." + strconv.Itoa(event.MatchID) + ".event." + event.Type
 	body, err := json.Marshal(event)
@@ -268,6 +248,33 @@ type RabbitMQ struct {
 }
 
 // TODO: Delete this and use a database (REDIS)
+/*
+func publishAllEvents(c *gin.Context) { // Test
+	// Publish all events to RabbitMQ
+	for _, evento := range eventos { // TODO: Get events from database not from global variable
+		publishEvent(evento)
+		time.Sleep(1 * time.Second)
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "All events published"})
+}
+
+func createEvent(c *gin.Context) {
+	var evento Event
+	// Bind JSON to Event struct
+	if err := c.BindJSON(&evento); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// TODO: Save event in database
+	evento.ID = len(eventos) + 1
+	eventos = append(eventos, evento) // TODO: Remove this line when using a database
+
+	// Publish event to RabbitMQ
+	publishEvent(evento)
+	c.JSON(http.StatusCreated, evento)
+}
+*/
 var matches = []Match{
 	{ID: 1, HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
 	{ID: 2, HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
