@@ -77,6 +77,18 @@ func initializeSampleMatches() {
 		match.ID = int(newID)
 		matchID := strconv.Itoa(match.ID)
 
+		// Check if match already exists
+		exists, err := redisClient.Exists(ctx, "match:"+matchID).Result()
+		if err != nil {
+			log.Printf("Unable to check if match exists in Redis: %v", err)
+			continue
+		}
+		if exists == 1 {
+			log.Printf("Match with ID %d already exists, skipping insertion", match.ID)
+			continue
+		}
+
+		// Save match to Redis as hash
 		err = redisClient.HSet(ctx, "match:"+matchID, map[string]interface{}{
 			"id":           match.ID,
 			"homeTeam":     match.HomeTeam,
@@ -110,7 +122,11 @@ func initializeRouter() {
 	router.PUT("/matches/:id", updateMatch)
 	router.DELETE("/matches/:id", deleteMatch)
 
-	router.Run(":8080") // Start server on port 8080
+	// Routes for CRUD operations on events
+	router.POST("/events", createEvent)
+	router.GET("/events/:id", getEvent)
+
+	router.Run(":8081") // Start server on port 8081
 }
 
 // CRUD Operations for Matches
@@ -151,18 +167,45 @@ func createMatch(c *gin.Context) {
 		return
 	}
 
-	// Publish event to RabbitMQ after creating match
-	event := Event{
-		ID:      match.ID,
-		MatchID: match.ID,
-		Type:    "created",
-		Team:    "", // You can fill this with relevant data if needed
-		Player:  "", // You can fill this with relevant data if needed
-		Minute:  0,  // You can fill this with relevant data if needed
+	c.JSON(http.StatusCreated, match)
+}
+
+func createEvent(c *gin.Context) {
+	var event Event
+	if err := c.BindJSON(&event); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	// Increment the event ID counter in Redis
+	newID, err := redisClient.Incr(ctx, "event_id_counter").Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to generate new event ID: " + err.Error()})
+		return
+	}
+
+	event.ID = int(newID)
+	eventID := strconv.Itoa(event.ID) // Convert ID to string
+
+	// Save event to Redis as hash
+	err = redisClient.HSet(ctx, "event:"+eventID, map[string]interface{}{
+		"id":      event.ID,
+		"matchId": event.MatchID,
+		"team":    event.Team,
+		"player":  event.Player,
+		"type":    event.Type,
+		"minute":  event.Minute,
+	}).Err()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save event in Redis: " + err.Error()})
+		return
+	}
+
+	// Publish event to RabbitMQ
 	publishEvent(event)
 
-	c.JSON(http.StatusCreated, match)
+	c.JSON(http.StatusCreated, event)
 }
 
 // Handler to retrieve a match by ID
@@ -195,6 +238,33 @@ func getMatch(c *gin.Context) {
 	match.Time = result["time"]
 
 	c.JSON(http.StatusOK, match)
+}
+
+func getEvent(c *gin.Context) {
+	eventID := c.Param("id")
+	// Retrieve event from Redis hash
+	result, err := redisClient.HGetAll(ctx, "event:"+eventID).Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve event: " + err.Error()})
+		return
+	}
+
+	// Check if the event exists
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	// Deserialize to Event struct
+	var event Event
+	event.ID, _ = strconv.Atoi(result["id"])
+	event.MatchID, _ = strconv.Atoi(result["matchId"])
+	event.Team = result["team"]
+	event.Player = result["player"]
+	event.Type = result["type"]
+	event.Minute, _ = strconv.Atoi(result["minute"])
+
+	c.JSON(http.StatusOK, event)
 }
 
 // Handler to delete a match by ID
