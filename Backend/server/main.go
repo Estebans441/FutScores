@@ -11,7 +11,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/redis/go-redis/v9"
 )
+
+var redisClient *redis.Client
+var ctx = context.Background()
 
 func main() {
 	rabbitHost := os.Getenv("RABBITMQ_HOST")
@@ -22,17 +26,104 @@ func main() {
 	if redisHost == "" {
 		redisHost = "localhost"
 	}
+
+	// Connect to Redis
+	connectToRedis(redisHost)
+
+	// Start RabbitMQ
 	startRabbitMQ(rabbitHost)
-	intializeRouter()
+	initializeRouter()
 	stopRabbitMQ()
+}
+
+// Function to connect to Redis
+func connectToRedis(redisHost string) {
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     redisHost + ":6379", // Redis server address
+		Password: "",                  // No password set
+		DB:       0,                   // Use default DB
+	})
+
+	// Test connection
+	_, err := redisClient.Ping(ctx).Result()
+	if err != nil {
+		log.Fatalf("Cannot connect to Redis: %v", err)
+	}
+	log.Println("Connected to Redis successfully")
 }
 
 /***************
 	REST API
 ****************/
-// TODO: CRUD matches and events
-// TODO: Do not use global variables but a database (REDIS)
 
+// Function to initialize the router with API routes
+func initializeRouter() {
+	router := gin.Default()
+
+	// Routes for CRUD operations on matches
+	router.POST("/matches", createMatch)
+	router.GET("/matches/:id", getMatch)
+	router.GET("/matches", getAllMatches)
+	router.DELETE("/matches/:id", deleteMatch)
+
+	// Routes for event management
+	//router.GET("/events", publishAllEvents)
+	//router.POST("/events", createEvent)
+
+	router.Run(":8081") // Start server on port 8080
+}
+
+// CRUD Operations for Matches
+// Handler to create a new match
+func createMatch(c *gin.Context) {
+	var match Match
+	if err := c.BindJSON(&match); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	matchID := strconv.Itoa(match.ID)     // Convert ID to string
+	matchJSON, err := json.Marshal(match) // Serialize match to JSON
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to serialize match"})
+		return
+	}
+
+	// Save match to Redis
+	err = redisClient.Set(ctx, "match:"+matchID, matchJSON, 0).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save match in Redis"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, match)
+}
+
+// Handler to retrieve a match by ID
+func getMatch(c *gin.Context) {
+	matchID := c.Param("id")
+
+	// Retrieve match from Redis
+	matchJSON, err := redisClient.Get(ctx, "match:"+matchID).Result()
+	if err == redis.Nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve match"})
+		return
+	}
+
+	// Deserialize JSON to Match object
+	var match Match
+	if err := json.Unmarshal([]byte(matchJSON), &match); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to deserialize match"})
+		return
+	}
+
+	c.JSON(http.StatusOK, match)
+}
+
+/*
 func publishAllEvents(c *gin.Context) { // Test
 	// Publish all events to RabbitMQ
 	for _, evento := range eventos { // TODO: Get events from database not from global variable
@@ -58,31 +149,27 @@ func createEvent(c *gin.Context) {
 	publishEvent(evento)
 	c.JSON(http.StatusCreated, evento)
 }
+*/
 
-func getMatches(c *gin.Context) {
-	c.JSON(http.StatusOK, matches)
+// Handler to delete a match by ID
+func deleteMatch(c *gin.Context) {
+	matchID := c.Param("id")
+
+	// Delete match from Redis
+	err := redisClient.Del(ctx, "match:"+matchID).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete match"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
 }
 
-func intializeRouter() {
-	// Create a new router
-	router := gin.Default()
-
-	// Define the routes
-	router.GET("/events", publishAllEvents)
-	router.POST("/events", createEvent)
-
-	router.GET("/matches", getMatches)
-
-	// Run the server
-	router.Run(":8080")
+// Handler to get all matches
+func getAllMatches(c *gin.Context) {
+	// Implementation needed to retrieve all matches from Redis
+	// This would typically involve scanning or iterating through keys
 }
-
-
-/***************
-	  REDIS
-****************/
-// TODO: Implement DB connection
-// TODO: Implement CRUD operations
 
 /***************
     RABBITMQ
@@ -90,6 +177,7 @@ func intializeRouter() {
 
 var rabbitmq RabbitMQ
 
+// Function to start RabbitMQ
 func startRabbitMQ(rabbitHost string) {
 	rabbitmq.conn, rabbitmq.err = amqp.Dial("amqp://guest:guest@" + rabbitHost + ":5672/")
 	failOnError(rabbitmq.err, "Failed to connect to RabbitMQ")
@@ -111,18 +199,21 @@ func startRabbitMQ(rabbitHost string) {
 	rabbitmq.ctx, rabbitmq.cancel = context.WithTimeout(context.Background(), 5*time.Second)
 }
 
+// Function to stop RabbitMQ
 func stopRabbitMQ() {
 	rabbitmq.conn.Close()
 	rabbitmq.ch.Close()
 	rabbitmq.cancel()
 }
 
+// Function to handle errors
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err)
 	}
 }
 
+// Function to publish events to RabbitMQ
 func publishEvent(event Event) {
 	topic := "match." + strconv.Itoa(event.MatchID) + ".event." + event.Type
 	body, err := json.Marshal(event)
@@ -144,7 +235,7 @@ func publishEvent(event Event) {
 }
 
 /***************
-	 MODELS
+	MODELS
 ****************/
 
 type Event struct {
