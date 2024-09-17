@@ -413,6 +413,42 @@ func updateMatch(c *gin.Context) {
 	c.JSON(http.StatusOK, match)
 }
 
+func updateEvent(c *gin.Context) {
+	eventID := c.Param("id")
+	var event Event
+	if err := c.BindJSON(&event); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Verify if the event exists
+	exists, err := redisClient.Exists(ctx, "event:"+eventID).Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to verify event existence: " + err.Error()})
+		return
+	} else if exists == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	// Update event in Redis as hash
+	err = redisClient.HSet(ctx, "event:"+eventID, map[string]interface{}{
+		"id":      event.ID,
+		"matchId": event.MatchID,
+		"team":    event.Team,
+		"player":  event.Player,
+		"type":    event.Type,
+		"minute":  event.Minute,
+	}).Err()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update event in Redis: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, event)
+}
+
 /***************
     RABBITMQ
 ****************/
