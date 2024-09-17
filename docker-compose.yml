@@ -1,15 +1,33 @@
 services:
+  redis:
+    image: redis/redis-stack-server:latest
+    ports:
+      - 6379:6379
+    command: ["redis-server", "--appendonly", "yes", "--protected-mode", "no"]
+    volumes:
+      - /local-data/:/data
+  
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - 8001:5540
+    depends_on:
+      - redis
+    volumes:
+      - redisinsight-data:/db
+
   broker:
-    image: futscoresbroker
-    build:
-      context: ./Backend/broker
-      dockerfile: Dockerfile
+    image: rabbitmq:3.13-management
     ports:
       - 5672:5672
       - 15672:15672
       - 15674:15674
+    command: >
+      sh -c "
+      rabbitmq-plugins enable rabbitmq_stomp &&
+      rabbitmq-plugins enable rabbitmq_web_stomp &&
+      rabbitmq-server"
   backend:
-    image: futscoresbackend
     build:
       context: ./Backend/server
       dockerfile: Dockerfile
@@ -19,15 +37,17 @@ services:
       - broker
     environment:
       - RABBITMQ_HOST=broker
+      - REDIS_HOST=redis
   frontend:
-    image: futscoresfrontend
     build:
       context: ./Frontend
       dockerfile: Dockerfile
     ports:
-      - 4321:4321
+      - 4322:4321
     depends_on:
       - backend
     environment:
       - BACKEND_HOST=backend
       - RABBITMQ_HOST=localhost
+volumes:
+  redisinsight-data:

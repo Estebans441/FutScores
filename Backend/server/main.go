@@ -15,8 +15,12 @@ import (
 
 func main() {
 	rabbitHost := os.Getenv("RABBITMQ_HOST")
+	redisHost := os.Getenv("REDIS_HOST")
 	if rabbitHost == "" {
 		rabbitHost = "localhost"
+	}
+	if redisHost == "" {
+		redisHost = "localhost"
 	}
 	startRabbitMQ(rabbitHost)
 	intializeRouter()
@@ -26,9 +30,12 @@ func main() {
 /***************
 	REST API
 ****************/
+// TODO: CRUD matches and events
+// TODO: Do not use global variables but a database (REDIS)
 
-func publishAllEvents(c *gin.Context) {
-	for _, evento := range eventos {
+func publishAllEvents(c *gin.Context) { // Test
+	// Publish all events to RabbitMQ
+	for _, evento := range eventos { // TODO: Get events from database not from global variable
 		publishEvent(evento)
 		time.Sleep(1 * time.Second)
 	}
@@ -37,13 +44,18 @@ func publishAllEvents(c *gin.Context) {
 
 func createEvent(c *gin.Context) {
 	var evento Event
+	// Bind JSON to Event struct
 	if err := c.BindJSON(&evento); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// TODO: Save event in database
 	evento.ID = len(eventos) + 1
+	eventos = append(eventos, evento) // TODO: Remove this line when using a database
+	
+	// Publish event to RabbitMQ
 	publishEvent(evento)
-	eventos = append(eventos, evento)
 	c.JSON(http.StatusCreated, evento)
 }
 
@@ -64,6 +76,13 @@ func intializeRouter() {
 	// Run the server
 	router.Run(":8080")
 }
+
+
+/***************
+	  REDIS
+****************/
+// TODO: Implement DB connection
+// TODO: Implement CRUD operations
 
 /***************
     RABBITMQ
@@ -157,6 +176,7 @@ type RabbitMQ struct {
 	err    error
 }
 
+// TODO: Delete this and use a database (REDIS)
 var matches = []Match{
 	{ID: 1, HomeTeam: "Real Madrid", HomeTeamAbbr: "RMA", HomeImg: "/team_logos/Real Madrid.png", AwayTeam: "FC Barcelona", AwayTeamAbbr: "BAR", AwayImg: "/team_logos/FC Barcelona.png", Date: "2023-10-01", Time: "20:00"},
 	{ID: 2, HomeTeam: "Atlético de Madrid", HomeTeamAbbr: "ATM", HomeImg: "/team_logos/Atlético de Madrid.png", AwayTeam: "Sevilla FC", AwayTeamAbbr: "SEV", AwayImg: "/team_logos/Sevilla FC.png", Date: "2023-10-02", Time: "20:00"},
