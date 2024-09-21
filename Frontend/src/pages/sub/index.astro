@@ -1,0 +1,51 @@
+---
+import Matches from '../../components/matches/ListMatches.astro';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="FutScores">
+    <main>        
+		<section class="instructions">
+            <h2>Cómo Funciona</h2>
+            <p>
+                Una vez selecciones un partido, tendrás la opción de suscribirte a eventos específicos de ese partido, como goles, tarjetas, cambios y más. Para ello:
+            </p>
+            <ul class="list-disc pl-5">
+                <li class="list-item mb-2">Selecciona el partido de tu interés de la lista de abajo.</li>
+                <li class="list-item mb-2">Al hacer clic en un partido, serás redirigido a la página de detalles del partido, donde podrás ver una lista de eventos que puedes seguir.</li>
+                <li class="list-item mb-2">Marca los eventos que te gustaría recibir en tiempo real.</li>
+                <li class="list-item mb-2">El sistema se encargará de suscribirte a esos eventos específicos utilizando una conexión en tiempo real con nuestros servidores.</li>
+                <li class="list-item mb-2">Recibirás notificaciones automáticas en cuanto ocurran estos eventos.</li>
+            </ul>
+            <p>
+                Esta interacción está gestionada por nuestra tecnología de <strong>RabbitMQ</strong> y conexiones <strong>WebSocket</strong>, que garantizan que las actualizaciones te lleguen en tiempo real sin necesidad de que refresques la página.
+            </p>
+        </section>
+
+        <Matches />
+        
+    </main>
+</Layout>
+
+<style>
+    main {
+        margin: auto;
+        padding: 1rem;
+        width: 800px;
+        max-width: calc(100% - 2rem);
+        color: rgb(0, 0, 0);
+        font-size: 20px;
+        line-height: 1.6;
+    }
+    .instructions {
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        background: linear-gradient(45deg, rgba(30, 116, 30, 0.1), rgba(241, 245, 3, 0.05));
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .instructions strong {
+        color: green;
+    }
+</style>
