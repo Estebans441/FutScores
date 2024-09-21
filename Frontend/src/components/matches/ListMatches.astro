@@ -2,6 +2,13 @@
 import Card from './CardMatch.astro';
 import { getMatches } from '../../backend/matchesService';
 
+interface Props {
+  type: string;
+}
+
+const { type } = Astro.props;
+
+
 const matches = await getMatches();
 ---
 
@@ -12,6 +19,7 @@ const matches = await getMatches();
             <Card 
                 key={match.id}
                 match={match}
+                type={type}
             />
         ))}
     </ul>

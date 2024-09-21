@@ -12,17 +12,15 @@ import Layout from '../../layouts/Layout.astro';
             </p>
             <ul class="list-disc pl-5">
                 <li class="list-item mb-2">Selecciona el partido de tu interés de la lista de abajo.</li>
-                <li class="list-item mb-2">Al hacer clic en un partido, serás redirigido a la página de detalles del partido, donde podrás ver una lista de eventos que puedes seguir.</li>
-                <li class="list-item mb-2">Marca los eventos que te gustaría recibir en tiempo real.</li>
-                <li class="list-item mb-2">El sistema se encargará de suscribirte a esos eventos específicos utilizando una conexión en tiempo real con nuestros servidores.</li>
-                <li class="list-item mb-2">Recibirás notificaciones automáticas en cuanto ocurran estos eventos.</li>
+                <li class="list-item mb-2">Al hacer clic en un partido, serás redirigido a la página de detalles del partido, una vez allí serás suscriptor de los eventos del partido.</li>
+                <li class="list-item mb-2">Recibirás actualizaciones automáticas en cuanto ocurran estos eventos.</li>
             </ul>
             <p>
                 Esta interacción está gestionada por nuestra tecnología de <strong>RabbitMQ</strong> y conexiones <strong>WebSocket</strong>, que garantizan que las actualizaciones te lleguen en tiempo real sin necesidad de que refresques la página.
             </p>
         </section>
 
-        <Matches />
+        <Matches type='sub' />
         
     </main>
 </Layout>

@@ -4,9 +4,10 @@ import { type Match } from "../../types/match.ts";
 interface Props {
   key: number;
   match: Match;
+  type: string;
 }
 
-const { match } = Astro.props;
+const { match, type } = Astro.props;
 const {
   id,
   homeTeam,
@@ -21,7 +22,7 @@ const {
 ---
 
 <li class="link-card">
-  <a href={`/sub/matches/${id}`}>
+  <a href={`/${type}/matches/${id}`}>
     <div class="match-info">
       <div class="team">
         <img src={homeImg} alt={homeTeam} class="team-logo" />

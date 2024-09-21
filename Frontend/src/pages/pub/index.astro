@@ -8,39 +8,34 @@ import Layout from "../../layouts/Layout.astro";
     <section class="instructions">
       <h2>Cómo Funciona</h2>
       <p>
-        Una vez selecciones un partido, tendrás la opción de suscribirte a
-        eventos específicos de ese partido, como goles, tarjetas, cambios y más.
-        Para ello:
+        Como publicador de eventos deportivos, puedes compartir actualizaciones
+        de partidos en tiempo real con tus seguidores. Para ello, sigue estos
+        pasos:
       </p>
       <ul class="list-disc pl-5">
         <li class="list-item mb-2">
-          Selecciona el partido de tu interés de la lista de abajo.
+          Selecciona o crea un partido de la lista de abajo.
         </li>
         <li class="list-item mb-2">
           Al hacer clic en un partido, serás redirigido a la página de detalles
-          del partido, donde podrás ver una lista de eventos que puedes seguir.
-        </li>
-        <li class="list-item mb-2">
-          Marca los eventos que te gustaría recibir en tiempo real.
-        </li>
-        <li class="list-item mb-2">
-          El sistema se encargará de suscribirte a esos eventos específicos
-          utilizando una conexión en tiempo real con nuestros servidores.
-        </li>
-        <li class="list-item mb-2">
-          Recibirás notificaciones automáticas en cuanto ocurran estos eventos.
+          del partido, donde podrás publicar los eventos que ocurran.
         </li>
       </ul>
       <p>
         Esta interacción está gestionada por nuestra tecnología de <strong
           >RabbitMQ</strong
-        > y conexiones <strong>WebSocket</strong>, que garantizan que las
-        actualizaciones te lleguen en tiempo real sin necesidad de que
-        refresques la página.
+        >.
       </p>
     </section>
 
-    <Matches />
+    <Matches type="pub" />
+
+    <button
+      style="position: fixed; bottom: 40px; right: 40px;"
+      class="bg-green-500 text-white py-4 px-8 rounded flex items-center text-lg"
+    >
+      <a href="/sub"><b>+ Crear partido</b></a>
+    </button>
   </main>
 </Layout>
 
@@ -68,5 +63,12 @@ import Layout from "../../layouts/Layout.astro";
 
   .instructions strong {
     color: green;
+  }
+  .button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 20px;
   }
 </style>
