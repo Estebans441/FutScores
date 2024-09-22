@@ -1,53 +1,43 @@
 ---
-import Matches from '../components/matches/ListMatches.astro';
-import Layout from '../layouts/Layout.astro';
-
-// TODO: Create different index page for selecting pub or sub mode and when selected sub redirect to this page
+import { Image } from "astro:assets";
+import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="FutScores">
-    <main>        
-		<section class="instructions">
-            <h2>Cómo Funciona</h2>
-            <p>
-                Una vez selecciones un partido, tendrás la opción de suscribirte a eventos específicos de ese partido, como goles, tarjetas, cambios y más. Para ello:
-            </p>
-            <ul class="list-disc pl-5">
-                <li class="list-item mb-2">Selecciona el partido de tu interés de la lista de abajo.</li>
-                <li class="list-item mb-2">Al hacer clic en un partido, serás redirigido a la página de detalles del partido, donde podrás ver una lista de eventos que puedes seguir.</li>
-                <li class="list-item mb-2">Marca los eventos que te gustaría recibir en tiempo real.</li>
-                <li class="list-item mb-2">El sistema se encargará de suscribirte a esos eventos específicos utilizando una conexión en tiempo real con nuestros servidores.</li>
-                <li class="list-item mb-2">Recibirás notificaciones automáticas en cuanto ocurran estos eventos.</li>
-            </ul>
-            <p>
-                Esta interacción está gestionada por nuestra tecnología de <strong>RabbitMQ</strong> y conexiones <strong>WebSocket</strong>, que garantizan que las actualizaciones te lleguen en tiempo real sin necesidad de que refresques la página.
-            </p>
-        </section>
+<Layout>
+  <div class="flex flex-col items-center justify-center pt-52 space-y-6">
+    <button
+      class="bg-green-500 text-white py-4 px-8 rounded flex items-center text-lg"
+    >
+      <Image
+        src="/relaciones-publicas.png"
+        alt="Publicador"
+        class="w-10 h-10 mr-4"
+        width="50"
+        height="50"
+      />
+      <a href="/pub"><b>Iniciar como Publicador</b></a>
+    </button>
+    <button
+      class="bg-green-500 text-white py-4 px-8 rounded flex items-center text-lg"
+    >
+      <Image
+        src="/aficionados.png"
+        alt="Aficionados"
+        class="w-10 h-10 mr-4"
+        width="50"
+        height="50"
+      />
+      <a href="/sub"><b>Iniciar como Suscriptor</b></a>
+    </button>
+  </div>
 
-        <Matches />
-        
-    </main>
+  <style>
+    .button-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      gap: 20px;
+    }
+  </style>
 </Layout>
-
-<style>
-    main {
-        margin: auto;
-        padding: 1rem;
-        width: 800px;
-        max-width: calc(100% - 2rem);
-        color: rgb(0, 0, 0);
-        font-size: 20px;
-        line-height: 1.6;
-    }
-    .instructions {
-        margin-bottom: 2rem;
-        border: 1px solid rgba(0,0,0,0.1);
-        background: linear-gradient(45deg, rgba(30, 116, 30, 0.1), rgba(241, 245, 3, 0.05));
-        padding: 1.5rem;
-        border-radius: 8px;
-    }
-
-    .instructions strong {
-        color: green;
-    }
-</style>

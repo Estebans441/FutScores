@@ -1,0 +1,135 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { createMatch, getTeams } from "../../../backend/matchesService";
+
+const teams = getTeams();
+
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const homeTeam = data.get("homeTeam");
+    const awayTeam = data.get("awayTeam");
+    const date = data.get("date") as string | null;
+    const time = data.get("time") as string | null;
+
+    const homeTeamObj = teams.find((team) => team.teamName === homeTeam);
+    const awayTeamObj = teams.find((team) => team.teamName === awayTeam);
+
+    if (!homeTeamObj || !awayTeamObj) {
+      console.error("Equipo no encontrado");
+      return;
+    }
+
+    await createMatch({
+      id: -1,
+      homeTeam: homeTeamObj.teamName,
+      homeTeamAbbr: homeTeamObj.teamAbbr,
+      homeImg: `/team_logos/${homeTeamObj.teamName}.png`,
+      awayTeam: awayTeamObj.teamName,
+      awayTeamAbbr: awayTeamObj.teamAbbr,
+      awayImg: `/team_logos/${awayTeamObj.teamName}.png`,
+      date: date ?? "",
+      time: time ?? "",
+    });
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: "/pub",
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
+---
+
+<Layout title="FutScores">
+  <form class="match-form" method="POST">
+    <label for="homeImg">Equipo Local:</label>
+    <select id="homeImg" name="homeTeam" required>
+      {
+        teams.map((team: { teamName: string; teamAbbr: string }) => (
+          <option value={team.teamName}>{team.teamName}</option>
+        ))
+      }
+    </select>
+
+    <label for="awayImg">Equipo Visitante:</label>
+    <select id="awayImg" name="awayTeam" required>
+      {
+        teams.map((team: { teamName: string; teamAbbr: string }) => (
+          <option value={team.teamName}>{team.teamName}</option>
+        ))
+      }
+    </select>
+
+    <label for="date">Fecha:</label>
+    <input type="date" id="date" name="date" required />
+
+    <label for="time">Hora:</label>
+    <input type="time" id="time" name="time" required />
+
+    <button type="submit" class="submit-btn">Crear Partido</button>
+  </form>
+</Layout>
+
+<style>
+  /* General page styles */
+  .match-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #f7fdf4; /* Light green background */
+    padding: 20px;
+    margin-top: 60px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .match-form label {
+    margin-top: 15px;
+    color: #004d00; /* Dark green color for labels */
+    font-weight: bold;
+  }
+
+  .match-form select,
+  .match-form input {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #cce7cc; /* Light green border */
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .match-form select:focus,
+  .match-form input:focus {
+    outline: none;
+    border-color: #66cc66; /* Highlighted border on focus */
+  }
+
+  .submit-btn {
+    background-color: #28a745; /* Green button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+
+  .submit-btn:hover {
+    background-color: #218838; /* Darker green on hover */
+  }
+
+  @media (max-width: 600px) {
+    .match-form {
+      padding: 15px;
+    }
+  }
+</style>
