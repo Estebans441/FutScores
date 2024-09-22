@@ -1,10 +1,10 @@
 export type Match = {
     id: number;
     homeTeam: string;
-    homeAbbr: string;
+    homeTeamAbbr: string;
     homeImg: string;
     awayTeam: string;
-    awayAbbr: string;
+    awayTeamAbbr: string;
     awayImg: string;
     date: string;
     time: string;
