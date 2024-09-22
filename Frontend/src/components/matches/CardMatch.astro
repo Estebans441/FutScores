@@ -11,10 +11,10 @@ const { match, type } = Astro.props;
 const {
   id,
   homeTeam,
-  homeAbbr,
+  homeTeamAbbr,
   homeImg,
   awayTeam,
-  awayAbbr,
+  awayTeamAbbr,
   awayImg,
   date,
   time,
@@ -28,7 +28,7 @@ const {
         <img src={homeImg} alt={homeTeam} class="team-logo" />
         <div class="team-info">
           <span class="team-name">{homeTeam}</span>
-          <span class="team-abbr">{homeAbbr}</span>
+          <span class="team-abbr">{homeTeamAbbr}</span>
         </div>
       </div>
       <div class="vs">VS</div>
@@ -36,7 +36,7 @@ const {
         <img src={awayImg} alt={awayTeam} class="team-logo" />
         <div class="team-info">
           <span class="team-name">{awayTeam}</span>
-          <span class="team-abbr">{awayAbbr}</span>
+          <span class="team-abbr">{awayTeamAbbr}</span>
         </div>
       </div>
     </div>

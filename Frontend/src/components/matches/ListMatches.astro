@@ -1,6 +1,6 @@
 ---
-import Card from './CardMatch.astro';
-import { getMatches } from '../../backend/matchesService';
+import Card from "./CardMatch.astro";
+import { getMatches } from "../../backend/matchesService";
 
 interface Props {
   type: string;
@@ -8,19 +8,15 @@ interface Props {
 
 const { type } = Astro.props;
 
-
-const matches = await getMatches();
+let matches = await getMatches();
+if (matches == null) {
+  matches = [];
+}
 ---
 
 <section class="matches-section">
-    <h2>Partidos Disponibles</h2>
-    <ul role="list" class="link-card-grid">
-        {matches.map(match => (
-            <Card 
-                key={match.id}
-                match={match}
-                type={type}
-            />
-        ))}
-    </ul>
+  <h2>Partidos Disponibles</h2>
+  <ul role="list" class="link-card-grid">
+    {matches.map((match) => <Card key={match.id} match={match} type={type} />)}
+  </ul>
 </section>

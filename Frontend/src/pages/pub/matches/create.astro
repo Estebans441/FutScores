@@ -1,18 +1,63 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
-const teams = ["FC Barcelona", "Real Madrid"];
+import { createMatch, getTeams } from "../../../backend/matchesService";
+import { type Match } from "../../../types/match";
+
+const teams = getTeams();
+
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const homeTeam = data.get("homeTeam");
+    const awayTeam = data.get("awayTeam");
+    const date = data.get("date") as string | null;
+    const time = data.get("time") as string | null;
+
+    const homeTeamObj = teams.find((team) => team.teamName === homeTeam);
+    const awayTeamObj = teams.find((team) => team.teamName === awayTeam);
+
+    if (!homeTeamObj || !awayTeamObj) {
+      console.error("Equipo no encontrado");
+      return;
+    }
+    
+    createMatch({
+      id: -1,
+      homeTeam: homeTeamObj.teamName,
+      homeTeamAbbr: homeTeamObj.teamAbbr,
+      homeImg: `/team_logos/${homeTeamObj.teamName}.png`,
+      awayTeam: awayTeamObj.teamName,
+      awayTeamAbbr: awayTeamObj.teamAbbr,
+      awayImg: `/team_logos/${awayTeamObj.teamName}.png`,
+      date: date ?? '',
+      time: time ?? '',
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
 ---
 
 <Layout title="FutScores">
-  <form class="match-form">
+  <form class="match-form" method="POST">
     <label for="homeImg">Equipo Local:</label>
-    <select id="homeImg" name="homeImg" required>
-      {teams.map((team: string) => <option value={team}>{team}</option>)}
+    <select id="homeImg" name="homeTeam" required>
+      {
+        teams.map((team: { teamName: string; teamAbbr: string }) => (
+          <option value={team.teamName}>{team.teamName}</option>
+        ))
+      }
     </select>
 
     <label for="awayImg">Equipo Visitante:</label>
-    <select id="awayImg" name="awayImg" required>
-      {teams.map((team: string) => <option value={team}>{team}</option>)}
+    <select id="awayImg" name="awayTeam" required>
+      {
+        teams.map((team: { teamName: string; teamAbbr: string }) => (
+          <option value={team.teamName}>{team.teamName}</option>
+        ))
+      }
     </select>
 
     <label for="date">Fecha:</label>
