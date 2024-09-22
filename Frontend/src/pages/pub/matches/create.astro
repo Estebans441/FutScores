@@ -1,7 +1,6 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import { createMatch, getTeams } from "../../../backend/matchesService";
-import { type Match } from "../../../types/match";
 
 const teams = getTeams();
 
@@ -20,8 +19,8 @@ if (Astro.request.method === "POST") {
       console.error("Equipo no encontrado");
       return;
     }
-    
-    createMatch({
+
+    await createMatch({
       id: -1,
       homeTeam: homeTeamObj.teamName,
       homeTeamAbbr: homeTeamObj.teamAbbr,
@@ -29,8 +28,15 @@ if (Astro.request.method === "POST") {
       awayTeam: awayTeamObj.teamName,
       awayTeamAbbr: awayTeamObj.teamAbbr,
       awayImg: `/team_logos/${awayTeamObj.teamName}.png`,
-      date: date ?? '',
-      time: time ?? '',
+      date: date ?? "",
+      time: time ?? "",
+    });
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: "/pub",
+      },
     });
   } catch (error) {
     if (error instanceof Error) {
