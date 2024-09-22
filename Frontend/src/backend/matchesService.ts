@@ -24,6 +24,10 @@ export const createMatch = async (match: Match): Promise<void> => {
     });
 }
 
+export const getBackendHost = (): string => {
+    return BACKEND_HOST;
+}
+
 export const getRabbitMQHost = (): string => {
     return RABBITMQ_HOST;
 }
